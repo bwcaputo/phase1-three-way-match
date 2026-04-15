@@ -1,0 +1,29 @@
+# Secrets
+.env
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Odoo volumes
+odoo-data/
+postgres-data/
+
+# Logs & outputs
+*.log
+runs/
+agent_runs/
+
+# Marketing / personal drafts — keep local only
+docs/LINKEDIN_POST.md
+docs/LINKEDIN_POST.txt
+docs/LOOM_SCRIPT.md
+SESSION_HANDOFF.md

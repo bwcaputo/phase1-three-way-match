@@ -1,0 +1,49 @@
+{
+  "experiment": "prompt_injection",
+  "model": "claude-haiku-4-5-20251001",
+  "sample_strategy": "all",
+  "sample_n_requested": 30,
+  "sample_n_actual": 10,
+  "bills": [
+    {
+      "bill_name": "BILL/2026/04/0115",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0116",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0118",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0119",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0120",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0121",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0123",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0124",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0125",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0126",
+      "scenario_type": "prompt_injection"
+    }
+  ]
+}

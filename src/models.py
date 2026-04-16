@@ -58,6 +58,7 @@ class VendorInvoice(BaseModel):
     total: Decimal = Decimal("0")  # tax-inclusive — what the vendor wants paid
     untaxed_total: Decimal = Decimal("0")  # pre-tax — for header-vs-lines reconciliation
     state: str = "posted"
+    narration: Optional[str] = None  # internal notes / memo field — visible to agent
 
 
 # --- Match output ---

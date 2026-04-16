@@ -8,9 +8,18 @@ Odoo exposes two XML-RPC endpoints: ``/xmlrpc/2/common`` for auth and
 from __future__ import annotations
 
 import os
+import re
 import xmlrpc.client
 from decimal import Decimal
 from typing import Any, Optional
+
+
+def _strip_html(raw: str) -> str:
+    """Remove HTML tags and collapse whitespace. Odoo stores narration as HTML."""
+    if not raw:
+        return ""
+    text = re.sub(r"<[^>]+>", " ", raw)
+    return re.sub(r"\s+", " ", text).strip()
 
 from .models import GoodsReceipt, LineItem, PurchaseOrder, VendorInvoice
 
@@ -143,7 +152,8 @@ class OdooClient:
             ids,
             fields=[
                 "id", "name", "partner_id", "invoice_date", "invoice_origin",
-                "currency_id", "amount_total", "amount_untaxed", "state", "invoice_line_ids",
+                "currency_id", "amount_total", "amount_untaxed", "state",
+                "invoice_line_ids", "narration",
             ],
         )[0]
         lines = self._call(
@@ -152,6 +162,8 @@ class OdooClient:
             inv["invoice_line_ids"],
             fields=["product_id", "name", "quantity", "price_unit", "price_subtotal"],
         )
+        raw_narration = inv.get("narration") or ""
+        narration = _strip_html(raw_narration) or None
         return VendorInvoice(
             id=inv["id"],
             invoice_number=inv["name"],
@@ -163,6 +175,7 @@ class OdooClient:
             total=Decimal(str(inv["amount_total"])),
             untaxed_total=Decimal(str(inv.get("amount_untaxed", inv["amount_total"]))),
             state=inv["state"],
+            narration=narration,
             lines=[
                 LineItem(
                     product_code=(ln["product_id"][1].split("]")[0].strip("[").strip() if ln.get("product_id") else "UNKNOWN"),

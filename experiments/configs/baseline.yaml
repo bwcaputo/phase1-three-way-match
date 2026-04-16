@@ -1,0 +1,48 @@
+# Baseline experiment — agent runs with the default playbook, roles, skills,
+# and tools. No RPST variation yet. This is the control everything else gets
+# compared against.
+#
+# Future variants will override one or more of: system_prompt, tools, model,
+# max_turns. Anything left as `null` falls back to the in-code default
+# (src/agent.py SYSTEM_PROMPT, src/tools.py TOOL_SCHEMAS).
+
+name: baseline
+description: >
+  Default agent against the seeded playground. Establishes the baseline
+  accuracy, latency, and cost numbers that RPST variants will be measured
+  against.
+
+# --- Agent configuration ---
+agent:
+  model: claude-sonnet-4-6
+  max_turns: 12
+  system_prompt: null    # null => use SYSTEM_PROMPT from src/agent.py
+  tools: null            # null => use TOOL_SCHEMAS from src/tools.py
+
+# --- Sampling from the playground manifest ---
+# Strategies:
+#   all          -> every bill in the manifest
+#   first_n      -> first N bills (deterministic, ordered)
+#   random_n     -> N bills sampled uniformly with the given seed
+#   stratified   -> if `per_scenario` is set, take that many from EACH scenario
+#                   type (flat allocation — what the project rules require).
+#                   Otherwise allocate `n` proportionally across scenarios.
+sample:
+  strategy: stratified
+  per_scenario: 5        # 5 per scenario × 6 scenarios = 30 bills
+  seed: 42
+  scenarios: null        # optional list to filter, e.g. [clean, duplicate]
+
+# --- Cost model ---
+# Approximate Anthropic API pricing in USD per million tokens, as of model
+# release. Override here for any model not in the runner's default table.
+pricing:
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00
+  claude-opus-4-6:
+    input_per_mtok: 15.00
+    output_per_mtok: 75.00
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00

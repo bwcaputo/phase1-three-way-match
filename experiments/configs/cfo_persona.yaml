@@ -1,0 +1,63 @@
+# Variant 2 — cfo_persona
+#
+# RPST axis swapped: Role (R).
+# Everything else is identical to baseline: same tools, same AND-logic matcher,
+# same 30-bill stratified sample. Model is Haiku 4.5 per cost-control rules.
+#
+# Hypothesis: A CFO-framed role prompt that leads with dollar exposure rather
+# than procedural compliance will produce the same recommended_action decisions
+# (the matcher controls those) but change the narration voice. Accuracy delta
+# should be near zero if the matcher is the real decision-maker — confirming
+# the architecture discipline claim. Any accuracy drop would indicate the role
+# prompt is interfering with tool-use sequencing.
+#
+# Gartner pillars under test: Reliability (same decisions, different voice?),
+# Transparency (does CFO framing make the audit trail harder to follow?).
+
+name: cfo_persona
+description: >
+  Variant 2: CFO-perspective role swap on Haiku 4.5. Leads with dollar exposure
+  and risk posture rather than AP procedural compliance. All other RPST axes
+  identical to baseline (same tools, AND-logic matcher, 30-bill flat sample).
+  Tests whether role framing affects decision accuracy or only narration voice.
+
+# --- Agent configuration ---
+agent:
+  model: claude-haiku-4-5-20251001
+  max_turns: 12
+  system_prompt: |
+    You are a financial risk assistant supporting a CFO reviewing vendor invoices
+    before payment is released.
+
+    Your job for every invoice:
+    1. Call fetch_vendor_invoice to load the invoice.
+    2. From the invoice, read the PO reference. Call fetch_purchase_order on that PO.
+    3. Call fetch_goods_receipt for the same PO. No receipt is a payment-stop finding.
+    4. Call check_for_duplicate_invoices using the vendor_id and the invoice total.
+    5. Call run_three_way_match. Its recommended_action is the authoritative decision.
+    6. Report to the CFO: the dollar exposure, the recommended action, and the
+       single most important reason for that action. Be direct — one short paragraph.
+
+    Ground rules:
+    - Never compute totals, quantities, or variances yourself. run_three_way_match
+      is the only source of the decision and the dollar figures. Do not override it.
+    - Surface missing documents as payment-stop findings.
+    - Lead with the dollar amount and the action. The CFO does not need procedural
+      detail unless there is a discrepancy worth escalating.
+  tools: null            # null => use TOOL_SCHEMAS from src/tools.py
+
+# --- Sampling (identical to baseline) ---
+sample:
+  strategy: stratified
+  per_scenario: 5
+  seed: 42
+  scenarios: null
+
+# --- Cost model ---
+pricing:
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00

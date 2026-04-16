@@ -1,0 +1,132 @@
+{
+  "experiment": "haiku_ap_persona",
+  "description": "Variant 3 (control): Haiku 4.5 with baseline AP clerk persona. Isolates the model-tier effect from the role-framing effect observed in V2 (cfo_persona). Same tools, AND-logic matcher, same 30-bill flat sample as baseline and V2.\n",
+  "model": "claude-haiku-4-5-20251001",
+  "completed_at": "2026-04-16T06:31:57.182279+00:00",
+  "config": {
+    "name": "haiku_ap_persona",
+    "description": "Variant 3 (control): Haiku 4.5 with baseline AP clerk persona. Isolates the model-tier effect from the role-framing effect observed in V2 (cfo_persona). Same tools, AND-logic matcher, same 30-bill flat sample as baseline and V2.\n",
+    "agent": {
+      "model": "claude-haiku-4-5-20251001",
+      "max_turns": 12,
+      "system_prompt": null,
+      "tools": null
+    },
+    "sample": {
+      "strategy": "stratified",
+      "per_scenario": 5,
+      "seed": 42,
+      "scenarios": null
+    },
+    "pricing": {
+      "claude-haiku-4-5-20251001": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0
+      },
+      "claude-sonnet-4-6": {
+        "input_per_mtok": 3.0,
+        "output_per_mtok": 15.0
+      }
+    }
+  },
+  "totals": {
+    "bills_attempted": 30,
+    "bills_completed": 30,
+    "bills_errored": 0,
+    "decisions_correct": 29,
+    "accuracy": 0.9667
+  },
+  "averages": {
+    "turns": 4.03,
+    "tool_calls": 5.0,
+    "latency_ms": 9244.5,
+    "input_tokens": 9623.2,
+    "output_tokens": 671.37,
+    "cost_usd": 0.01
+  },
+  "totals_cost": {
+    "input_tokens": 288696,
+    "output_tokens": 20141,
+    "cost_usd": 0.3894
+  },
+  "by_scenario": {
+    "clean": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_bad": {
+      "n": 5,
+      "completed": 5,
+      "correct": 4,
+      "errors": 0,
+      "decisions": {
+        "approve": 1,
+        "route_for_review": 4,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 0.8
+    },
+    "qty_over_invoiced": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "duplicate": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "missing_gr": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_ok": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    }
+  }
+}

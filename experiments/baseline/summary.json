@@ -1,0 +1,136 @@
+{
+  "experiment": "baseline",
+  "description": "Default agent against the seeded playground. Establishes the baseline accuracy, latency, and cost numbers that RPST variants will be measured against.\n",
+  "model": "claude-sonnet-4-6",
+  "completed_at": "2026-04-16T20:37:57.791578+00:00",
+  "config": {
+    "name": "baseline",
+    "description": "Default agent against the seeded playground. Establishes the baseline accuracy, latency, and cost numbers that RPST variants will be measured against.\n",
+    "agent": {
+      "model": "claude-sonnet-4-6",
+      "max_turns": 12,
+      "system_prompt": null,
+      "tools": null
+    },
+    "sample": {
+      "strategy": "stratified",
+      "per_scenario": 5,
+      "seed": 42,
+      "scenarios": null
+    },
+    "pricing": {
+      "claude-sonnet-4-6": {
+        "input_per_mtok": 3.0,
+        "output_per_mtok": 15.0
+      },
+      "claude-opus-4-6": {
+        "input_per_mtok": 15.0,
+        "output_per_mtok": 75.0
+      },
+      "claude-haiku-4-5-20251001": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0
+      }
+    }
+  },
+  "totals": {
+    "bills_attempted": 30,
+    "bills_completed": 30,
+    "bills_errored": 0,
+    "decisions_correct": 29,
+    "accuracy": 0.9667
+  },
+  "averages": {
+    "turns": 4.0,
+    "tool_calls": 5.0,
+    "latency_ms": 17748.3,
+    "input_tokens": 9540.6,
+    "output_tokens": 881.73,
+    "cost_usd": 0.04
+  },
+  "totals_cost": {
+    "input_tokens": 286218,
+    "output_tokens": 26452,
+    "cost_usd": 1.2554
+  },
+  "by_scenario": {
+    "clean": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_bad": {
+      "n": 5,
+      "completed": 5,
+      "correct": 4,
+      "errors": 0,
+      "decisions": {
+        "approve": 1,
+        "route_for_review": 4,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 0.8
+    },
+    "qty_over_invoiced": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "duplicate": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "missing_gr": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_ok": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    }
+  }
+}

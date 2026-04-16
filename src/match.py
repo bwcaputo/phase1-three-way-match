@@ -132,7 +132,13 @@ def three_way_match(
         if po_price > 0 and inv_price > 0:
             price_delta = inv_price - po_price
             price_pct_delta = (price_delta / po_price) if po_price else Decimal("0")
-            if abs(price_delta) > price_tol_usd and abs(price_pct_delta) > price_tol_pct:
+            price_logic = os.getenv("PRICE_VARIANCE_LOGIC", "and").lower()
+            price_flag = (
+                abs(price_delta) > price_tol_usd or abs(price_pct_delta) > price_tol_pct
+                if price_logic == "or"
+                else abs(price_delta) > price_tol_usd and abs(price_pct_delta) > price_tol_pct
+            )
+            if price_flag:
                 discrepancies.append(Discrepancy(
                     code="PRICE_VARIANCE",
                     severity="warn",

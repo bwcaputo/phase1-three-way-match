@@ -9,7 +9,8 @@ render a human-readable summary for the AP clerk. The math lives in
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Optional
 
 from anthropic import Anthropic
@@ -41,6 +42,12 @@ class AgentResult:
     match_result: Optional[MatchResult]
     summary: str  # Claude's final plain-English narration
     tool_calls: int
+    turns: int = 0  # number of model invocations (round-trips)
+    input_tokens: int = 0  # summed across turns
+    output_tokens: int = 0  # summed across turns
+    latency_ms: int = 0  # wall-clock time for the full agent run
+    stop_reason: Optional[str] = None  # last stop_reason from the model
+    error: Optional[str] = None  # populated only if the run failed mid-loop
 
 
 def run_agent(
@@ -50,55 +57,91 @@ def run_agent(
     model: Optional[str] = None,
     max_turns: int = 12,
     verbose: bool = False,
+    system_prompt: Optional[str] = None,
+    tools: Optional[list[dict]] = None,
 ) -> AgentResult:
+    """Run the three-way match agent on a single invoice.
+
+    The optional ``system_prompt`` and ``tools`` overrides exist so
+    experimental RPST variants can swap the playbook or toolset without
+    forking this function. Pass ``None`` for either to use the defaults
+    defined in this module / ``src.tools``.
+    """
     client = client or OdooClient()
     anthropic = anthropic or Anthropic()
     model = model or os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
     dispatcher = ToolDispatcher(client)
+
+    effective_system = system_prompt if system_prompt is not None else SYSTEM_PROMPT
+    effective_tools = tools if tools is not None else TOOL_SCHEMAS
 
     messages: list[dict] = [
         {"role": "user", "content": f"Run the three-way match on invoice {invoice_number}."}
     ]
 
     tool_calls = 0
+    turns = 0
+    input_tokens = 0
+    output_tokens = 0
     summary_text = ""
+    last_stop_reason: Optional[str] = None
 
-    for _turn in range(max_turns):
-        resp = anthropic.messages.create(
-            model=model,
-            max_tokens=2048,
-            system=SYSTEM_PROMPT,
-            tools=TOOL_SCHEMAS,
-            messages=messages,
-        )
+    started = time.perf_counter()
+    try:
+        for _turn in range(max_turns):
+            resp = anthropic.messages.create(
+                model=model,
+                max_tokens=2048,
+                system=effective_system,
+                tools=effective_tools,
+                messages=messages,
+            )
+            turns += 1
+            last_stop_reason = resp.stop_reason
+            usage = getattr(resp, "usage", None)
+            if usage is not None:
+                input_tokens += getattr(usage, "input_tokens", 0) or 0
+                output_tokens += getattr(usage, "output_tokens", 0) or 0
 
-        # Append assistant turn
-        messages.append({"role": "assistant", "content": resp.content})
+            # Append assistant turn
+            messages.append({"role": "assistant", "content": resp.content})
 
-        if resp.stop_reason == "tool_use":
-            tool_results = []
+            if resp.stop_reason == "tool_use":
+                tool_results = []
+                for block in resp.content:
+                    if block.type == "tool_use":
+                        tool_calls += 1
+                        if verbose:
+                            print(f"  -> {block.name}({block.input})")
+                        result = dispatcher.dispatch(block.name, block.input)
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": result,
+                        })
+                messages.append({"role": "user", "content": tool_results})
+                continue
+
+            # end_turn — assemble final text
             for block in resp.content:
-                if block.type == "tool_use":
-                    tool_calls += 1
-                    if verbose:
-                        print(f"  -> {block.name}({block.input})")
-                    result = dispatcher.dispatch(block.name, block.input)
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result,
-                    })
-            messages.append({"role": "user", "content": tool_results})
-            continue
+                if getattr(block, "type", None) == "text":
+                    summary_text += block.text
+            break
 
-        # end_turn — assemble final text
-        for block in resp.content:
-            if getattr(block, "type", None) == "text":
-                summary_text += block.text
-        break
+        error: Optional[str] = None
+    except Exception as exc:  # noqa: BLE001
+        error = f"{type(exc).__name__}: {exc}"
+
+    latency_ms = int((time.perf_counter() - started) * 1000)
 
     return AgentResult(
         match_result=dispatcher.last_result,
         summary=summary_text.strip(),
         tool_calls=tool_calls,
+        turns=turns,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        latency_ms=latency_ms,
+        stop_reason=last_stop_reason,
+        error=error,
     )

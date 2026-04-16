@@ -1,0 +1,46 @@
+# Variant 3 — haiku_ap_persona (control)
+#
+# RPST axis swapped: Model only (Haiku 4.5, baseline AP persona).
+# Everything else identical to baseline: AP clerk system_prompt (null = default),
+# same tools, AND-logic matcher, same 30-bill stratified sample seed=42.
+#
+# Purpose: control for V2 (cfo_persona). V2 changed TWO things simultaneously
+# (model: Sonnet→Haiku AND role: AP→CFO). This variant changes only the model,
+# keeping the role at baseline AP persona. Attribution logic:
+#
+#   If haiku_ap_persona catches BILL/2026/04/0029 (duplicate):
+#     → V2 miss was caused by the CFO persona suppressing duplicate caution
+#     → Finding: Fairness / Reliability — role framing affects detection behavior
+#
+#   If haiku_ap_persona also misses BILL/2026/04/0029:
+#     → V2 miss was a Haiku model-capability gap, not a persona artifact
+#     → Finding: Reliability — model tier affects duplicate detection
+
+name: haiku_ap_persona
+description: >
+  Variant 3 (control): Haiku 4.5 with baseline AP clerk persona. Isolates the
+  model-tier effect from the role-framing effect observed in V2 (cfo_persona).
+  Same tools, AND-logic matcher, same 30-bill flat sample as baseline and V2.
+
+# --- Agent configuration ---
+agent:
+  model: claude-haiku-4-5-20251001
+  max_turns: 12
+  system_prompt: null    # null => use baseline AP clerk SYSTEM_PROMPT from src/agent.py
+  tools: null            # null => use TOOL_SCHEMAS from src/tools.py
+
+# --- Sampling (identical to baseline and V2) ---
+sample:
+  strategy: stratified
+  per_scenario: 5
+  seed: 42
+  scenarios: null
+
+# --- Cost model ---
+pricing:
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00

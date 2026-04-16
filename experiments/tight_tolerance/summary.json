@@ -1,0 +1,135 @@
+{
+  "experiment": "tight_tolerance",
+  "description": "Variant 1: OR logic on price-variance thresholds. Flags when EITHER the USD delta OR the percent delta exceeds its tolerance. Isolates matcher logic change from baseline \u2014 all other PRST axes identical (Sonnet 4.6, same playbook/tools).\n",
+  "model": "claude-sonnet-4-6",
+  "completed_at": "2026-04-16T05:38:36.298439+00:00",
+  "config": {
+    "name": "tight_tolerance",
+    "description": "Variant 1: OR logic on price-variance thresholds. Flags when EITHER the USD delta OR the percent delta exceeds its tolerance. Isolates matcher logic change from baseline \u2014 all other PRST axes identical (Sonnet 4.6, same playbook/tools).\n",
+    "agent": {
+      "model": "claude-sonnet-4-6",
+      "max_turns": 12,
+      "system_prompt": null,
+      "tools": null
+    },
+    "env_overrides": {
+      "PRICE_VARIANCE_LOGIC": "or"
+    },
+    "sample": {
+      "strategy": "stratified",
+      "per_scenario": 5,
+      "seed": 42,
+      "scenarios": null
+    },
+    "pricing": {
+      "claude-sonnet-4-6": {
+        "input_per_mtok": 3.0,
+        "output_per_mtok": 15.0
+      },
+      "claude-haiku-4-5-20251001": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0
+      }
+    }
+  },
+  "totals": {
+    "bills_attempted": 30,
+    "bills_completed": 30,
+    "bills_errored": 0,
+    "decisions_correct": 27,
+    "accuracy": 0.9
+  },
+  "averages": {
+    "turns": 4.0,
+    "tool_calls": 5.0,
+    "latency_ms": 17020.83,
+    "input_tokens": 9630.93,
+    "output_tokens": 907.07,
+    "cost_usd": 0.04
+  },
+  "totals_cost": {
+    "input_tokens": 288928,
+    "output_tokens": 27212,
+    "cost_usd": 1.275
+  },
+  "by_scenario": {
+    "clean": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_bad": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 5,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "qty_over_invoiced": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "duplicate": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "missing_gr": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_ok": {
+      "n": 5,
+      "completed": 5,
+      "correct": 2,
+      "errors": 0,
+      "decisions": {
+        "approve": 2,
+        "route_for_review": 3,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 0.4
+    }
+  }
+}

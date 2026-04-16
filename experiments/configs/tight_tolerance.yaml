@@ -1,0 +1,50 @@
+# Variant 1 — tight_tolerance
+#
+# Changes ONE thing from the baseline: the price-variance gate flips from
+# AND logic to OR logic (via PRICE_VARIANCE_LOGIC=or).
+#
+# Baseline (AND): flag only when BOTH thresholds are exceeded
+#   -> tolerates a 12.9% bump on a $2.40/unit part because $0.31 < $5 USD floor
+#
+# Variant 1 (OR): flag when EITHER threshold is exceeded
+#   -> catches the 12.9% bump; may add false positives on small-USD variances
+#
+# Model is kept at Sonnet 4.6 (same as baseline) to isolate the matcher change.
+# If model were swapped to Haiku the accuracy delta would conflate model and logic.
+# A Haiku × tight_tolerance cross-variant can come later.
+#
+# Expected outcome: price_variance_bad 5/5 (was 4/5); watch price_variance_ok
+# for regression (baseline was 5/5).
+
+name: tight_tolerance
+description: >
+  Variant 1: OR logic on price-variance thresholds. Flags when EITHER the USD
+  delta OR the percent delta exceeds its tolerance. Isolates matcher logic change
+  from baseline — all other RPST axes identical (Sonnet 4.6, same playbook/tools).
+
+# --- Agent configuration (identical to baseline) ---
+agent:
+  model: claude-sonnet-4-6
+  max_turns: 12
+  system_prompt: null    # null => use SYSTEM_PROMPT from src/agent.py
+  tools: null            # null => use TOOL_SCHEMAS from src/tools.py
+
+# --- Environment overrides applied before the run ---
+env_overrides:
+  PRICE_VARIANCE_LOGIC: "or"
+
+# --- Sampling (identical to baseline) ---
+sample:
+  strategy: stratified
+  per_scenario: 5
+  seed: 42
+  scenarios: null
+
+# --- Cost model ---
+pricing:
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00

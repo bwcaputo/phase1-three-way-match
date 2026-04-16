@@ -1,0 +1,132 @@
+{
+  "experiment": "cfo_persona",
+  "description": "Variant 2: CFO-perspective role swap on Haiku 4.5. Leads with dollar exposure and risk posture rather than AP procedural compliance. All other PRST axes identical to baseline (same tools, AND-logic matcher, 30-bill flat sample). Tests whether role framing affects decision accuracy or only narration voice.\n",
+  "model": "claude-haiku-4-5-20251001",
+  "completed_at": "2026-04-16T06:06:30.573382+00:00",
+  "config": {
+    "name": "cfo_persona",
+    "description": "Variant 2: CFO-perspective role swap on Haiku 4.5. Leads with dollar exposure and risk posture rather than AP procedural compliance. All other PRST axes identical to baseline (same tools, AND-logic matcher, 30-bill flat sample). Tests whether role framing affects decision accuracy or only narration voice.\n",
+    "agent": {
+      "model": "claude-haiku-4-5-20251001",
+      "max_turns": 12,
+      "system_prompt": "You are a financial risk assistant supporting a CFO reviewing vendor invoices\nbefore payment is released.\n\nYour job for every invoice:\n1. Call fetch_vendor_invoice to load the invoice.\n2. From the invoice, read the PO reference. Call fetch_purchase_order on that PO.\n3. Call fetch_goods_receipt for the same PO. No receipt is a payment-stop finding.\n4. Call check_for_duplicate_invoices using the vendor_id and the invoice total.\n5. Call run_three_way_match. Its recommended_action is the authoritative decision.\n6. Report to the CFO: the dollar exposure, the recommended action, and the\n   single most important reason for that action. Be direct \u2014 one short paragraph.\n\nGround rules:\n- Never compute totals, quantities, or variances yourself. run_three_way_match\n  is the only source of the decision and the dollar figures. Do not override it.\n- Surface missing documents as payment-stop findings.\n- Lead with the dollar amount and the action. The CFO does not need procedural\n  detail unless there is a discrepancy worth escalating.\n",
+      "tools": null
+    },
+    "sample": {
+      "strategy": "stratified",
+      "per_scenario": 5,
+      "seed": 42,
+      "scenarios": null
+    },
+    "pricing": {
+      "claude-haiku-4-5-20251001": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0
+      },
+      "claude-sonnet-4-6": {
+        "input_per_mtok": 3.0,
+        "output_per_mtok": 15.0
+      }
+    }
+  },
+  "totals": {
+    "bills_attempted": 30,
+    "bills_completed": 30,
+    "bills_errored": 0,
+    "decisions_correct": 28,
+    "accuracy": 0.9333
+  },
+  "averages": {
+    "turns": 4.03,
+    "tool_calls": 5.0,
+    "latency_ms": 9098.57,
+    "input_tokens": 9595.1,
+    "output_tokens": 526.27,
+    "cost_usd": 0.01
+  },
+  "totals_cost": {
+    "input_tokens": 287853,
+    "output_tokens": 15788,
+    "cost_usd": 0.3668
+  },
+  "by_scenario": {
+    "clean": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_bad": {
+      "n": 5,
+      "completed": 5,
+      "correct": 4,
+      "errors": 0,
+      "decisions": {
+        "approve": 1,
+        "route_for_review": 4,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 0.8
+    },
+    "qty_over_invoiced": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "duplicate": {
+      "n": 5,
+      "completed": 5,
+      "correct": 4,
+      "errors": 0,
+      "decisions": {
+        "approve": 1,
+        "route_for_review": 0,
+        "block": 4,
+        "none": 0
+      },
+      "accuracy": 0.8
+    },
+    "missing_gr": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 0,
+        "route_for_review": 0,
+        "block": 5,
+        "none": 0
+      },
+      "accuracy": 1.0
+    },
+    "price_variance_ok": {
+      "n": 5,
+      "completed": 5,
+      "correct": 5,
+      "errors": 0,
+      "decisions": {
+        "approve": 5,
+        "route_for_review": 0,
+        "block": 0,
+        "none": 0
+      },
+      "accuracy": 1.0
+    }
+  }
+}

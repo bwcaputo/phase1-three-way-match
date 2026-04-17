@@ -454,6 +454,11 @@ def main() -> int:
         action="store_true",
         help="Re-read existing runs.jsonl and rewrite summary.json (no API calls)",
     )
+    parser.add_argument(
+        "--rebuild-viewer",
+        action="store_true",
+        help="Rebuild docs/viewer/index.html after the experiment completes",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -585,6 +590,20 @@ def main() -> int:
 
     render_summary(summary)
     console.print(f"\nResults: {runs_path}\nSummary: {summary_path}\n")
+
+    if args.rebuild_viewer:
+        import subprocess as _sp
+        viewer_script = REPO_ROOT / "scripts" / "build_viewer.py"
+        console.print("[bold]Rebuilding viewer...[/bold]")
+        try:
+            _sp.run([sys.executable, str(viewer_script)], check=True, cwd=str(REPO_ROOT))
+            console.print(
+                "[green]Viewer rebuilt.[/green] "
+                "Open [cyan]docs/viewer/index.html[/cyan] to see results."
+            )
+        except _sp.CalledProcessError as exc:
+            console.print(f"[yellow]Viewer rebuild failed (exit {exc.returncode}).[/yellow]")
+
     return 0
 
 

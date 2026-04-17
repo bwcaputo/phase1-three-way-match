@@ -15,6 +15,7 @@ from typing import Optional
 
 from anthropic import Anthropic
 
+from .model_adapter import ModelAdapter, get_adapter
 from .models import MatchResult
 from .odoo_client import OdooClient
 from .tools import TOOL_SCHEMAS, ToolDispatcher
@@ -59,6 +60,7 @@ def run_agent(
     verbose: bool = False,
     system_prompt: Optional[str] = None,
     tools: Optional[list[dict]] = None,
+    adapter: Optional[ModelAdapter] = None,
 ) -> AgentResult:
     """Run the three-way match agent on a single invoice.
 
@@ -66,11 +68,25 @@ def run_agent(
     experimental RPST variants can swap the playbook or toolset without
     forking this function. Pass ``None`` for either to use the defaults
     defined in this module / ``src.tools``.
+
+    Pass ``adapter`` to use a non-Anthropic model provider (OpenAI, Ollama,
+    or any ModelAdapter subclass). When ``adapter`` is None the function
+    falls back to ``get_adapter(model)`` which routes by model name prefix.
+    The legacy ``anthropic`` argument is still accepted for backwards
+    compatibility and takes precedence if passed explicitly.
     """
     client = client or OdooClient()
-    anthropic = anthropic or Anthropic()
     model = model or os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
     dispatcher = ToolDispatcher(client)
+
+    # Resolve adapter. Legacy callers may pass a raw Anthropic client;
+    # wrap it so the loop below stays provider-agnostic.
+    if adapter is None:
+        if anthropic is not None:
+            from .model_adapter import AnthropicAdapter
+            adapter = AnthropicAdapter(client=anthropic)
+        else:
+            adapter = get_adapter(model)
 
     effective_system = system_prompt if system_prompt is not None else SYSTEM_PROMPT
     effective_tools = tools if tools is not None else TOOL_SCHEMAS
@@ -89,7 +105,7 @@ def run_agent(
     started = time.perf_counter()
     try:
         for _turn in range(max_turns):
-            resp = anthropic.messages.create(
+            resp = adapter.create_message(
                 model=model,
                 max_tokens=2048,
                 system=effective_system,
@@ -109,7 +125,7 @@ def run_agent(
             if resp.stop_reason == "tool_use":
                 tool_results = []
                 for block in resp.content:
-                    if block.type == "tool_use":
+                    if getattr(block, "type", None) == "tool_use":
                         tool_calls += 1
                         if verbose:
                             print(f"  -> {block.name}({block.input})")

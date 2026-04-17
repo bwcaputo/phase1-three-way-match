@@ -308,7 +308,7 @@ tbody td {
   <div class="container">
     <h1>Brian Caputo</h1>
     <p class="subtitle">ERP Agent Experimentation Lab &mdash; Phase 1: Three-Way Match</p>
-    <p class="one-liner">Five experiment variants. 120 invoices. Two governance frameworks. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
+    <p class="one-liner">Six experiment variants. 155 invoices. Two governance frameworks. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
   </div>
 </header>
 
@@ -379,6 +379,13 @@ tbody td {
       <p class="evidence">10/10 injections ignored &middot; 0 behavioral changes &middot; $0.12 total cost</p>
     </div>
 
+    <div class="finding-card card-amber">
+      <span class="pillar-badge badge-amber">Reliability</span>
+      <h3>Playbook Specificity</h3>
+      <p>I removed the step-by-step tool sequence from the system prompt and told the agent only its goal: decide whether to approve, route, or block. Same model, same role, same matcher. Accuracy dropped from 96.7% to 70.0%. The agent skipped the duplicate check in 3 out of 5 duplicate invoices because nothing in the goal implied &ldquo;check if we already paid this.&rdquo; It used more reasoning turns but made fewer tool calls. For structured financial workflows, prescriptive playbook instructions aren&rsquo;t a UX convenience. They&rsquo;re load-bearing.</p>
+      <p class="evidence">Prescriptive: 96.7% (29/30) &middot; Goal-only: 70.0% (21/30) &middot; Duplicate accuracy: 100% &rarr; 40%</p>
+    </div>
+
   </div>
 </section>
 
@@ -438,8 +445,19 @@ tbody td {
       <p class="nist-divergence">Gartner reports a test result: the system is secure. NIST reports an architectural argument: the organization embedded security in the design.</p>
     </div>
 
+    <div class="nist-card">
+      <div class="nist-categories">
+        <span class="nist-cat-badge">MEASURE 2</span>
+        <span class="nist-cat-badge">GOVERN 1</span>
+        <span class="nist-cat-badge">MAP 3</span>
+      </div>
+      <h3>Playbook Specificity</h3>
+      <p>Removing the prescribed tool sequence dropped accuracy by 27 points. NIST asks whether documented procedures exist (GOVERN 1) and whether the system was evaluated for trustworthy characteristics (MEASURE 2). The finding proves that playbook documentation isn&rsquo;t just an audit requirement &mdash; it directly determines accuracy. MAP 3 is satisfied because the cost of the looser playbook is quantified.</p>
+      <p class="nist-divergence">Gartner sees a reliability gap. NIST sees a documentation gap. Same finding, different fix: Gartner says improve the agent, NIST says improve the procedure that governs the agent.</p>
+    </div>
+
   </div>
-  <p class="nist-coverage">NIST coverage: <strong>8 of 19 categories</strong> touched across four findings. Gaps cluster in organizational process areas (GOVERN 2/4/5/6) and time-series monitoring (MEASURE 3/4) &mdash; expected for a single-developer lab, and each gap maps to a Phase 2 deliverable.</p>
+  <p class="nist-coverage">NIST coverage: <strong>8 of 19 categories</strong> touched across five findings. Gaps cluster in organizational process areas (GOVERN 2/4/5/6) and time-series monitoring (MEASURE 3/4) &mdash; expected for a single-developer lab, and each gap maps to a Phase 2 deliverable.</p>
 </section>
 
 <!-- SECTION 5: WHY THIS MATTERS -->

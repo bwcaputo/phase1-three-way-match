@@ -2,7 +2,23 @@
 
 Living doc. Updated at the end of each working session so any next session (Cowork, Claude Code, or human memory) picks up without re-deriving context.
 
-**Last updated:** 2026-04-16 (Claude Code: Security variant — prompt injection experiment complete)
+**Last updated:** 2026-04-16
+
+---
+
+## What landed this session (Claude Code, 2026-04-16 — viewer, security, scalability)
+
+Five things shipped:
+
+1. **Static HTML scorecard viewer built and published to GitHub Pages.** `docs/viewer/index.html` — five experiment variants in one scorecard table, four Gartner finding cards, exec summary, per-invoice drill-downs. Embedded data, no fetch calls. Lives at the GitHub Pages URL for this repo. Linked from the LinkedIn post.
+
+2. **LinkedIn post published (2026-04-16).** Four-variant scorecard shipped as the first public artifact from this lab.
+
+3. **Security variant: prompt injection. 10/10 injections ignored.** Fourth Gartner pillar (Security) confirmed. `experiments/prompt_injection/` has full traces. Architecture-as-defense finding: the deterministic matcher is the security control — the model never computes the decision, so injections have no surface to attack.
+
+4. **Scalability layer shipped.** `scripts/seed_playground.py` refactored to accept `--profile` YAML. Three sample profiles: manufacturer (50 vendors, 30 products, 300 invoices), services firm (25/15/150), distributor (40/25/500). `--dry-run` validates without touching Odoo. README "Adapt the sandbox to your business" section added.
+
+5. **Viewer updated with all five variants and four Gartner finding cards.** `build_viewer.py` is now the canonical source of truth (all prior text edits back-ported). Exec summary updated to mention YAML profile configurability.
 
 ---
 
@@ -64,8 +80,6 @@ Key findings:
 2. CFO persona costs 1 duplicate detection — role framing affects decision behavior, not just voice (Fairness finding).
 3. OR matcher trades 1 true positive for 3 false positives — policy knob with documented tradeoff (Transparency finding).
 
-**This is a Cowork moment.** Go interpret the four-variant scorecard and decide whether it's shippable for the LinkedIn post draft. See checklist item below.
-
 ---
 
 ## What landed this session (Claude Code, 2026-04-15 evening)
@@ -92,8 +106,6 @@ python -m scripts.run_experiment experiments/configs/tight_tolerance.yaml
 
 Outputs: `experiments/tight_tolerance/runs.jsonl`, `experiments/tight_tolerance/summary.json`
 
-**This is a Cowork moment.** The numbers are clean — OR logic trades 1 true positive for 3 false positives on price_variance_ok. That tradeoff is the scorecard content for the Reliability and Transparency pillars. The framing question is: which story do you want to tell? (a) "AND is the conservative, dollar-safe policy — a $0.31 variance on a $2.40 part doesn't warrant AP manager attention even at 12.9%," or (b) "OR is the auditor-grade policy — any percent exception gets flagged regardless of dollar size." That decision shapes variant narrative and what comes next.
-
 ---
 
 ## What landed this session (Cowork, 2026-04-15 PM)
@@ -107,8 +119,6 @@ Strategy and framing session. No code changes, no experiments run. What got deci
 - **Competitive positioning resolved.** Not competing with Stampli / Bill.com / Tipalti / AppZen / Braintrust / Langfuse. Building a methodology artifact — the thing a Wipfli partner walks in with *before* a client picks an AP tool. Vertical differentiator: ERP-specific scenarios, failure modes, audit trail.
 - **Pre-publish research checkpoint saved to auto-memory.** Before any public artifact (LinkedIn, Loom, blog) goes out, refresh the competitive landscape scan — the 2026 AP-agent and agent-eval markets move fast.
 
-**Next Cowork moment (top of the list):** resolve the `BILL/2026/04/0087` question from the baseline. Is it a tolerance-calibration issue, a seed-label semantics issue, or a real miss? That decides whether 96.7% is the story or whether baseline gets re-scored.
-
 ---
 
 ## What landed this session (Cowork, 2026-04-15 late evening — post-Variant 1)
@@ -120,8 +130,6 @@ The round-trip ran cleanly. Cowork diagnosed, Claude Code executed, Cowork inter
 - **UI direction decided: lightweight static HTML viewer.** Rejected Streamlit (feels like an MBA class project, tethers to the repo) and Next.js (months of scope creep). The viewer reads `experiments/<name>/runs.jsonl` and `summary.json`, renders six-pillar scorecards side-by-side, hosts on GitHub Pages, links directly from the LinkedIn post. Zero backend. Loom-friendly. Non-technical readers scroll through a scorecard, they do not run experiments. That is the correct bar. Build after at least three variants have run.
 - **`docs/CONTENT_IDEAS.md` created.** Scratchpad for LinkedIn post hooks with an honesty rule: things listed are legitimately rare, with an explicit "not rare" section to keep the file honest. Six entries. Candidate for first post: "the miss is the feature" — Variant 1 numbers write the narrative on their own. Publish only after at least one more variant has run so the scorecard has depth.
 
-**Next Cowork moment (top of the list):** resolve the AND-vs-OR policy framing question raised by the Variant 1 results. The scorecard tradeoff is clean (AND: 96.7% total, 80% on price_variance_bad; OR: 90.0% total, 100% on price_variance_bad, 40% on price_variance_ok). The consulting question is which policy posture the lab recommends as "default" for mid-market AP, and whether the scorecard presents them as equals or names a preferred default with caveats. That decision shapes Variant 2's hypothesis.
-
 ---
 
 ## What landed this session (Cowork, 2026-04-15 late evening — policy + V2 framing + CLAUDE.md)
@@ -132,15 +140,11 @@ Three decisions closed out. Claude Code is unblocked.
 - **Variant 2 hypothesis set.** **CFO persona role swap.** Rerun the 30-bill sample with a CFO persona in the agent's system prompt instead of the default AP-analyst framing. Same Playbook, Skills, Tools. Model: Haiku 4.5 (cost-control default for variants). PRST axis: **R** (Roles). Gartner pillar under test: **Fairness** — does changing role framing shift decisions on identical inputs? Either outcome is a finding. If decisions shift, that is the Fairness story. If they do not, that is the architecture claim (matcher is the arbiter, not the narration).
 - **CLAUDE.md created and pasted into repo.** `phase1-three-way-match/CLAUDE.md` now contains the Cost Control block, the Cowork↔Claude Code Handoff block, and the Standing Decisions block (including the AND-as-default policy). Both earlier drafts are no longer floating; the rules bind the next session.
 
-**Next Cowork moment (top of the list):** interpret Variant 2 results once Claude Code runs them. If the CFO persona shifts decisions on borderline bills (especially price_variance_ok), that is the Fairness pillar story for the scorecard. If it does not, write up the consistency result as the architecture claim. Either way, results come back to Cowork before Variant 3 gets scoped.
-
 ---
 
-## Gartner pillars pressure-tested by the four-variant scorecard
+## Gartner pillars pressure-tested by the five-variant scorecard
 
-Reliability (cost-accuracy frontier via Haiku vs Sonnet), Fairness (role-framing effect via CFO vs AP persona on Haiku), Transparency (policy-knob tradeoff via AND vs OR matcher). Three of six pillars. Accountability is implicit in the audit trail. Privacy and Security have not been pressure-tested. Prompt-injection and PII-leakage tests remain on the checklist as optional pre-post polish or as Phase 1.5 content.
-
-**Next Cowork moment (top of the list):** decide whether the scorecard is shippable for the LinkedIn post, or whether one more variant (Security via prompt injection, for example) runs first. Before any public artifact: refresh the competitive landscape scan per the pre-publish checkpoint in auto-memory.
+Reliability (cost-accuracy frontier via Haiku vs Sonnet), Fairness (role-framing effect via CFO vs AP persona on Haiku), Transparency (policy-knob tradeoff via AND vs OR matcher), Security (prompt injection resistance — 10/10 payloads ignored). Four of six pillars confirmed with measurable, reproducible findings. Accountability is implicit in the audit trail. Privacy has not been pressure-tested.
 
 ---
 
@@ -225,9 +229,10 @@ The eventual LinkedIn narrative is a consulting brief scored against these pilla
 - [x] **Variant 2 scoped: `cfo_persona` role swap.** RPST axis = R. Gartner pillar under test = Fairness. Model = Haiku 4.5. Sample = 30 bills. Same Playbook/Skills/Tools as baseline.
 - [x] Run Variant 2: `cfo_persona`. Results: 28/30 = 93.3%, $0.37, ~9s latency. New miss on `BILL/2026/04/0029` (duplicate). Same miss on `BILL/2026/04/0087` as baseline (expected, AND logic unchanged).
 - [x] **Run Variant 3: `haiku_ap_persona` (control).** 29/30 = 96.7%, $0.39. `BILL/2026/04/0029` caught. Attribution: CFO persona caused V2 duplicate miss, not Haiku model capability. Fairness finding confirmed.
-- [ ] **Cowork: interpret 4-variant scorecard, decide if shippable for LinkedIn post draft.** 4 variants × 3 RPST axes covered = enough for minimum viable scorecard. See scorecard table in "What landed" section above.
-- [ ] Design remaining RPST variants if scorecard needs more depth (e.g., "no duplicate-check tool," "terse playbook"). Per cost-control rules: variants on Haiku 4.5, 30 bills, $0.06/run ceiling.
-- [ ] Build static HTML scorecard viewer (after Cowork green-lights it)
+- [x] **Cowork: interpret 4-variant scorecard, decide if shippable for LinkedIn post draft.** Scorecard shipped. LinkedIn post published 2026-04-16.
+- [x] **Build static HTML scorecard viewer.** `docs/viewer/index.html` live on GitHub Pages.
+- [x] **Security variant: prompt injection.** 10/10 injections ignored. Fourth Gartner pillar (Security) confirmed. Architecture-as-defense finding. Results in `experiments/prompt_injection/`.
+- [x] **Scalability layer.** `seed_playground.py` refactored to accept `--profile` YAML. Three sample profiles shipped (manufacturer, services firm, distributor). `--dry-run` validation. README updated.
 
 ### Soon (demo polish)
 - [ ] Design three UI mockups as HTML artifacts — the PowerShell UI will not be in the Loom
@@ -235,8 +240,8 @@ The eventual LinkedIn narrative is a consulting brief scored against these pilla
 - [ ] Build naive-vs-disciplined split-screen agent (shows hallucination risk without discipline)
 - [ ] Save 3–5 clean agent runs to `demo_artifacts/` with scenario labels in filenames
 
-### Scalability (Layer 1 of configurable-sandbox story)
-- [ ] Parameterize `seed_playground.py` with profile YAML configs — vendors, products, scenario mix, PO volume, date range live in config not code
-- [ ] Ship 2–3 sample profiles (`profile_manufacturer.yaml`, `profile_services_firm.yaml`, `profile_distributor.yaml`)
-- [ ] README section: "adapt the sandbox to your business in 20 minutes"
-- [ ] Phase 2 deferrals documented: Layer 2 (industry-specific sce
+### Scalability (Layer 1 complete — Layer 2 deferred to Phase 2)
+- [x] Parameterize `seed_playground.py` with profile YAML configs — vendors, products, scenario mix, PO volume, date range live in config not code
+- [x] Ship 3 sample profiles (`profile_manufacturer.yaml`, `profile_services_firm.yaml`, `profile_distributor.yaml`)
+- [x] README section: "adapt the sandbox to your business"
+- [ ] Phase 2 deferrals: Layer 2 (industry-specific scenario library), Layer 3 (ERP adapter swap)

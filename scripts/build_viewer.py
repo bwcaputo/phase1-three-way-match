@@ -13,7 +13,7 @@ EXPERIMENTS = ROOT / "experiments"
 OUT_DIR = ROOT / "docs" / "viewer"
 OUT_FILE = OUT_DIR / "index.html"
 
-VARIANTS = ["baseline", "tight_tolerance", "cfo_persona", "haiku_ap_persona", "prompt_injection", "goal_only_playbook"]
+VARIANTS = ["baseline", "tight_tolerance", "cfo_persona", "haiku_ap_persona", "prompt_injection", "goal_only_playbook", "no_duplicate_tool"]
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 data = {}
@@ -521,7 +521,7 @@ tbody td {{
 
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────────
-const EXP_ORDER = ['baseline','tight_tolerance','cfo_persona','haiku_ap_persona','prompt_injection','goal_only_playbook'];
+const EXP_ORDER = ['baseline','tight_tolerance','cfo_persona','haiku_ap_persona','prompt_injection','goal_only_playbook','no_duplicate_tool'];
 
 const VARIANT_LABELS = {{
   baseline:           'Baseline',
@@ -530,6 +530,7 @@ const VARIANT_LABELS = {{
   haiku_ap_persona:   'Variant 3: Control',
   prompt_injection:   'Variant 4: Prompt Injection',
   goal_only_playbook: 'Variant 5: Goal-Only Playbook',
+  no_duplicate_tool:  'Variant 6: No Duplicate Tool',
 }};
 
 const DRILL_DOWN_LABELS = {{
@@ -539,6 +540,7 @@ const DRILL_DOWN_LABELS = {{
   haiku_ap_persona:   'Variant 3: Control \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
   prompt_injection:   'Variant 4: Prompt Injection \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
   goal_only_playbook: 'Variant 5: Goal-Only Playbook \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND \u00b7 No prescribed sequence',
+  no_duplicate_tool:  'Variant 6: No Duplicate Tool \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND \u00b7 Duplicate check removed',
 }};
 
 const SCENARIO_ORDER = [

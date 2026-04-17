@@ -112,6 +112,29 @@ class ExperimentConfig:
     env_overrides: dict[str, str] = field(default_factory=dict)  # injected before each run
     raw: dict[str, Any] = field(default_factory=dict)  # original YAML for the record
 
+    @staticmethod
+    def _resolve_tools(tools_config: Any) -> Optional[list[dict]]:
+        """Resolve the tools config value to a concrete list or None.
+
+        None / null  → use the default TOOL_SCHEMAS from src/tools.py (resolved
+                        inside run_agent at call time).
+        A list        → use as-is (explicit schema override in the config).
+        "WITHOUT_DUPLICATE_CHECK"
+                      → TOOL_SCHEMAS minus check_for_duplicate_invoices.
+        Any other string → raise so typos are caught early.
+        """
+        if tools_config is None:
+            return None
+        if isinstance(tools_config, list):
+            return tools_config
+        if tools_config == "WITHOUT_DUPLICATE_CHECK":
+            from src.tools import TOOL_SCHEMAS_NO_DUPLICATE
+            return TOOL_SCHEMAS_NO_DUPLICATE
+        raise ValueError(
+            f"Unknown tools config value: {tools_config!r}. "
+            "Expected null, a list, or 'WITHOUT_DUPLICATE_CHECK'."
+        )
+
     @classmethod
     def load(cls, path: Path) -> "ExperimentConfig":
         with path.open("r", encoding="utf-8") as f:
@@ -126,7 +149,7 @@ class ExperimentConfig:
                 model=agent_raw.get("model", "claude-sonnet-4-6"),
                 max_turns=int(agent_raw.get("max_turns", 12)),
                 system_prompt=agent_raw.get("system_prompt"),
-                tools=agent_raw.get("tools"),
+                tools=cls._resolve_tools(agent_raw.get("tools")),
             ),
             sample=SampleConfig(
                 strategy=sample_raw.get("strategy", "stratified"),

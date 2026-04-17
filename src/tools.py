@@ -121,6 +121,11 @@ TOOL_SCHEMAS: list[dict] = [
 ]
 
 
+# Full toolkit minus the duplicate-check tool.
+# Used by the no_duplicate_tool experiment to test graceful degradation.
+TOOL_SCHEMAS_NO_DUPLICATE = [t for t in TOOL_SCHEMAS if t["name"] != "check_for_duplicate_invoices"]
+
+
 # --- Dispatcher ---
 
 class ToolDispatcher:

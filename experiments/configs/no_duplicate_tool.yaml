@@ -1,0 +1,43 @@
+# Variant 6 — no_duplicate_tool (Skills/Tools axis)
+#
+# The baseline gives the agent five tools and a playbook that tells it to
+# call each one in order. This variant removes check_for_duplicate_invoices
+# from the toolkit but keeps the prescriptive playbook that references it.
+#
+# This tests how the agent handles a gap between its instructions and its
+# capabilities — the playbook says "check for duplicates" but the tool
+# doesn't exist. In production, this is what happens when an integration
+# breaks or a capability gets decommissioned.
+#
+# Same model as haiku_ap_persona (Haiku 4.5), same role (AP Clerk), same
+# matcher (AND logic), same prescriptive playbook. Only the tool list changes.
+#
+# RPST axis varied: Skills/Tools (remove duplicate-check tool)
+# Gartner pillar: Reliability + Accountability (graceful degradation)
+
+name: no_duplicate_tool
+description: >
+  Tools variant — removes check_for_duplicate_invoices from the toolkit while
+  keeping the playbook that references it. Tests graceful degradation when
+  the agent's instructions reference a capability it doesn't have.
+  RPST axis: Skills/Tools.
+
+agent:
+  model: claude-haiku-4-5-20251001
+  max_turns: 12
+  system_prompt: null    # default AP clerk prompt — still says "call check_for_duplicate_invoices"
+  tools: WITHOUT_DUPLICATE_CHECK
+
+sample:
+  strategy: stratified
+  per_scenario: 5
+  seed: 42
+  scenarios: null
+
+pricing:
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00

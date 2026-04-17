@@ -89,6 +89,33 @@ Three decisions shape the whole system.
 
 A deeper write-up lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Adapt the sandbox to your business
+
+The playground is configurable through business profile YAMLs. Each profile defines the vendor pool, product catalog, scenario mix, and volume for a specific industry context.
+
+Three sample profiles ship with the project:
+
+| Profile | Vendors | Products | Invoices | Key risk pattern |
+|---------|---------|----------|----------|------------------|
+| Manufacturer | 50 | 30 | 300 | Price variances on commodity parts |
+| Services Firm | 25 | 15 | 150 | Missing GR on services, duplicate retainer bills |
+| Distributor | 40 | 25 | 500 | High-volume price shifts on commodities |
+
+To seed a playground from a profile:
+
+```bash
+docker compose down -v && docker compose up -d
+python scripts/seed_playground.py --profile profiles/profile_distributor.yaml
+```
+
+To create your own profile, copy any sample and edit the vendor names, product catalog, and scenario mix to match your business. See `profiles/profile_schema.md` for field definitions and validation rules.
+
+To validate a profile without connecting to Odoo:
+
+```bash
+python scripts/seed_playground.py --profile profiles/your_profile.yaml --dry-run
+```
+
 ## Tests
 
 ```bash

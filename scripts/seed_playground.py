@@ -6,7 +6,7 @@ mid-month, not a handcrafted fixture. Writes a JSON manifest mapping every
 created bill to the scenario type that produced it, so the agent can be
 evaluated against ground truth.
 
-Defaults:
+Defaults (no profile):
   50 vendors, 30 products, 300 POs spread across the last 90 days, and a
   matching mix of vendor bills distributed as:
     70%  clean                    -> should APPROVE
@@ -20,6 +20,8 @@ Usage:
     python scripts/seed_playground.py
     python scripts/seed_playground.py --invoices 100
     python scripts/seed_playground.py --seed 7     # different random seed
+    python scripts/seed_playground.py --profile profiles/profile_manufacturer.yaml
+    python scripts/seed_playground.py --profile profiles/profile_distributor.yaml --dry-run
 
 To reset the sandbox entirely, use docker:
     docker compose down -v && docker compose up -d
@@ -68,6 +70,9 @@ EXPECTED_OUTCOME: dict[str, str] = {
     "missing_gr":           "block",
     "duplicate":            "block",
 }
+
+# All valid scenario keys — used for profile validation.
+ALL_SCENARIOS = set(SCENARIO_MIX.keys())
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +137,113 @@ PRODUCT_CATALOG: list[tuple[str, str, float]] = [
 
 
 # ---------------------------------------------------------------------------
+# Business profile dataclass and loader.
+# ---------------------------------------------------------------------------
+@dataclass
+class PlaygroundProfile:
+    name: str
+    description: str
+    vendors: int
+    products: int
+    invoices: int
+    seed: int
+    date_range_days: int
+    scenario_mix: dict[str, float]
+    vendor_names: list[str]
+    # Stored as (name, sku_prefix, base_price) tuples — same format as PRODUCT_CATALOG.
+    product_catalog: list[tuple[str, str, float]]
+
+
+def load_profile(path: str) -> PlaygroundProfile:
+    """
+    Load and validate a business profile YAML.
+
+    Raises ValueError with a descriptive message if validation fails.
+    """
+    import yaml  # deferred — only needed when --profile is used
+
+    raw = Path(path).read_text(encoding="utf-8")
+    data = yaml.safe_load(raw)
+
+    # --- required top-level keys ---
+    required = ["name", "description", "vendors", "products", "invoices",
+                "seed", "date_range_days", "scenario_mix", "vendor_names",
+                "product_catalog"]
+    missing = [k for k in required if k not in data]
+    if missing:
+        raise ValueError(f"Profile is missing required fields: {missing}")
+
+    name: str = data["name"]
+    description: str = data["description"]
+    vendors: int = int(data["vendors"])
+    products: int = int(data["products"])
+    invoices: int = int(data["invoices"])
+    seed: int = int(data["seed"])
+    date_range_days: int = int(data["date_range_days"])
+
+    # --- scenario_mix validation ---
+    mix_raw: dict = data["scenario_mix"]
+    unknown = set(mix_raw.keys()) - ALL_SCENARIOS
+    if unknown:
+        raise ValueError(f"Unknown scenario keys in scenario_mix: {unknown}")
+    missing_scenarios = ALL_SCENARIOS - set(mix_raw.keys())
+    if missing_scenarios:
+        raise ValueError(
+            f"scenario_mix is missing keys (use 0.0 if not needed): {missing_scenarios}"
+        )
+    scenario_mix = {k: float(v) for k, v in mix_raw.items()}
+    total = sum(scenario_mix.values())
+    if abs(total - 1.0) > 0.001:
+        raise ValueError(
+            f"scenario_mix values must sum to 1.0 (got {total:.6f})"
+        )
+
+    # --- vendor_names validation ---
+    vendor_names: list[str] = [str(v) for v in data["vendor_names"]]
+    if vendors > len(vendor_names):
+        raise ValueError(
+            f"Profile requests {vendors} vendors but vendor_names pool only has "
+            f"{len(vendor_names)} entries"
+        )
+
+    # --- product_catalog validation and conversion ---
+    # YAML format: {name, sku, base_price}  ->  tuple (name, sku_prefix, base_price)
+    raw_catalog: list[dict] = data["product_catalog"]
+    product_catalog: list[tuple[str, str, float]] = []
+    for i, entry in enumerate(raw_catalog):
+        for field_name in ("name", "sku", "base_price"):
+            if field_name not in entry:
+                raise ValueError(
+                    f"product_catalog[{i}] is missing field '{field_name}'"
+                )
+        price = float(entry["base_price"])
+        if price <= 0:
+            raise ValueError(
+                f"product_catalog[{i}] '{entry['name']}': base_price must be > 0 (got {price})"
+            )
+        product_catalog.append((str(entry["name"]), str(entry["sku"]), price))
+
+    if products > len(product_catalog):
+        raise ValueError(
+            f"Profile requests {products} products but product_catalog only has "
+            f"{len(product_catalog)} entries"
+        )
+
+    return PlaygroundProfile(
+        name=name,
+        description=description,
+        vendors=vendors,
+        products=products,
+        invoices=invoices,
+        seed=seed,
+        date_range_days=date_range_days,
+        scenario_mix=scenario_mix,
+        vendor_names=vendor_names,
+        product_catalog=product_catalog,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Records written to the manifest.
 # ---------------------------------------------------------------------------
 @dataclass
@@ -154,11 +266,16 @@ class ScenarioRecord:
 # ---------------------------------------------------------------------------
 # Entity builders.
 # ---------------------------------------------------------------------------
-def build_vendors(client: OdooClient, rng: random.Random, n: int) -> list[dict]:
+def build_vendors(
+    client: OdooClient,
+    rng: random.Random,
+    n: int,
+    vendor_pool: list[str],
+) -> list[dict]:
     """Create n vendors tagged with comment='PLAYGROUND' for later identification."""
-    if n > len(VENDOR_NAMES):
-        raise ValueError(f"Requested {n} vendors but only {len(VENDOR_NAMES)} names in pool")
-    chosen = rng.sample(VENDOR_NAMES, n)
+    if n > len(vendor_pool):
+        raise ValueError(f"Requested {n} vendors but only {len(vendor_pool)} names in pool")
+    chosen = rng.sample(vendor_pool, n)
     out = []
     for name in chosen:
         vid = client._call("res.partner", "create", {
@@ -170,9 +287,14 @@ def build_vendors(client: OdooClient, rng: random.Random, n: int) -> list[dict]:
     return out
 
 
-def build_products(client: OdooClient, rng: random.Random, n: int) -> list[dict]:
+def build_products(
+    client: OdooClient,
+    rng: random.Random,
+    n: int,
+    product_pool: list[tuple[str, str, float]],
+) -> list[dict]:
     """Create n products with SKUs prefixed 'PG-' for playground identification."""
-    catalog = rng.sample(PRODUCT_CATALOG, min(n, len(PRODUCT_CATALOG)))
+    catalog = rng.sample(product_pool, min(n, len(product_pool)))
     out = []
     for name, sku_root, price in catalog:
         pid = client._call("product.product", "create", {
@@ -191,10 +313,10 @@ def build_products(client: OdooClient, rng: random.Random, n: int) -> list[dict]
 # ---------------------------------------------------------------------------
 # Scenario primitives.
 # ---------------------------------------------------------------------------
-def _pick_scenario(rng: random.Random) -> str:
+def _pick_scenario(rng: random.Random, scenario_mix: dict[str, float]) -> str:
     r = rng.random()
     cum = 0.0
-    for scenario, weight in SCENARIO_MIX.items():
+    for scenario, weight in scenario_mix.items():
         cum += weight
         if r < cum:
             return scenario
@@ -261,8 +383,9 @@ def _create_bill(
 def execute_scenario(
     client: OdooClient, scenario_type: str, vendor: dict,
     products: list[dict], rng: random.Random,
+    date_range_days: int = 90,
 ) -> ScenarioRecord:
-    order_date = date.today() - timedelta(days=rng.randint(0, 90))
+    order_date = date.today() - timedelta(days=rng.randint(0, date_range_days))
     bill_date = order_date + timedelta(days=rng.randint(3, 14))
     po_lines = _generate_po_lines(rng, products)
 
@@ -348,17 +471,79 @@ def execute_scenario(
 # ---------------------------------------------------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed the Odoo sandbox with realistic scenario volume.")
-    parser.add_argument("--vendors",  type=int, default=50,  help="Number of vendors to create")
-    parser.add_argument("--products", type=int, default=30,  help="Number of products to create")
-    parser.add_argument("--invoices", type=int, default=300, help="Number of invoice scenarios to create")
-    parser.add_argument("--seed",     type=int, default=42,  help="Random seed for reproducibility")
+    parser.add_argument("--vendors",  type=int, default=None,
+                        help="Number of vendors to create (default: 50, or from profile)")
+    parser.add_argument("--products", type=int, default=None,
+                        help="Number of products to create (default: 30, or from profile)")
+    parser.add_argument("--invoices", type=int, default=None,
+                        help="Number of invoice scenarios to create (default: 300, or from profile)")
+    parser.add_argument("--seed",     type=int, default=None,
+                        help="Random seed for reproducibility (default: 42, or from profile)")
     parser.add_argument("--manifest", type=str, default="playground_manifest.json",
                         help="Output path for the scenario manifest")
+    parser.add_argument("--profile",  type=str, default=None,
+                        help="Path to a business profile YAML. See profiles/ for examples.")
+    parser.add_argument("--dry-run",  action="store_true",
+                        help="Load and validate the profile, print config summary, "
+                             "but do not connect to Odoo or create any records.")
     args = parser.parse_args()
 
     console = Console()
+
+    # --- Load profile (if provided) and resolve final config values ---
+    profile: Optional[PlaygroundProfile] = None
+    if args.profile:
+        try:
+            profile = load_profile(args.profile)
+        except Exception as e:
+            console.print(f"[bold red]Profile error:[/bold red] {e}")
+            return 1
+        console.print(f"[bold cyan]Profile:[/bold cyan] {profile.name}")
+        console.print(f"  {profile.description}\n")
+
+    # Resolve final values: CLI flag > profile > hardcoded default
+    active_vendors      = args.vendors  if args.vendors  is not None else (profile.vendors        if profile else 50)
+    active_products     = args.products if args.products is not None else (profile.products       if profile else 30)
+    active_invoices     = args.invoices if args.invoices is not None else (profile.invoices       if profile else 300)
+    active_seed         = args.seed     if args.seed     is not None else (profile.seed           if profile else 42)
+    active_date_range   = profile.date_range_days if profile else 90
+    active_scenario_mix = profile.scenario_mix    if profile else SCENARIO_MIX
+    active_vendor_pool  = profile.vendor_names    if profile else VENDOR_NAMES
+    active_product_pool = profile.product_catalog if profile else PRODUCT_CATALOG
+
+    # --- Dry-run: print summary and exit without touching Odoo ---
+    if args.dry_run:
+        table = Table(title="Profile config summary (dry run)", show_header=True, header_style="bold")
+        table.add_column("Setting")
+        table.add_column("Value", justify="right")
+        table.add_row("Vendors",      str(active_vendors))
+        table.add_row("Products",     str(active_products))
+        table.add_row("Invoices",     str(active_invoices))
+        table.add_row("Seed",         str(active_seed))
+        table.add_row("Date range",   f"{active_date_range} days")
+        table.add_row("Vendor pool",  str(len(active_vendor_pool)))
+        table.add_row("Product pool", str(len(active_product_pool)))
+        console.print(table)
+
+        mix_table = Table(title="Scenario mix", show_header=True, header_style="bold")
+        mix_table.add_column("Scenario")
+        mix_table.add_column("Weight", justify="right")
+        mix_table.add_column("Expected", style="dim")
+        mix_table.add_column("~Invoices", justify="right")
+        for stype, weight in active_scenario_mix.items():
+            mix_table.add_row(
+                stype,
+                f"{weight:.2%}",
+                EXPECTED_OUTCOME[stype],
+                str(round(active_invoices * weight)),
+            )
+        console.print(mix_table)
+        console.print("[green]Dry run complete. No Odoo records created.[/green]")
+        return 0
+
+    # --- Live run ---
     load_dotenv()
-    rng = random.Random(args.seed)
+    rng = random.Random(active_seed)
     client = OdooClient()
 
     console.print(f"[bold green]Connected to Odoo as uid={client.uid}[/bold green]\n")
@@ -373,15 +558,15 @@ def main() -> int:
         )
 
     # Phase 1: entities.
-    console.print(f"[bold]Creating {args.vendors} vendors and {args.products} products...[/bold]")
-    vendors = build_vendors(client, rng, args.vendors)
-    products = build_products(client, rng, args.products)
+    console.print(f"[bold]Creating {active_vendors} vendors and {active_products} products...[/bold]")
+    vendors = build_vendors(client, rng, active_vendors, active_vendor_pool)
+    products = build_products(client, rng, active_products, active_product_pool)
     console.print(f"  {len(vendors)} vendors, {len(products)} products ready.\n")
 
     # Phase 2: scenarios.
-    console.print(f"[bold]Generating {args.invoices} invoice scenarios...[/bold]")
+    console.print(f"[bold]Generating {active_invoices} invoice scenarios...[/bold]")
     scenarios: list[ScenarioRecord] = []
-    counts: dict[str, int] = {k: 0 for k in SCENARIO_MIX}
+    counts: dict[str, int] = {k: 0 for k in active_scenario_mix}
 
     with Progress(
         TextColumn("[progress.description]{task.description}"),
@@ -393,13 +578,16 @@ def main() -> int:
         TimeRemainingColumn(),
         console=console,
     ) as progress:
-        task = progress.add_task("Seeding", total=args.invoices)
-        for _ in range(args.invoices):
-            stype = _pick_scenario(rng)
+        task = progress.add_task("Seeding", total=active_invoices)
+        for _ in range(active_invoices):
+            stype = _pick_scenario(rng, active_scenario_mix)
             counts[stype] += 1
             vendor = rng.choice(vendors)
             try:
-                record = execute_scenario(client, stype, vendor, products, rng)
+                record = execute_scenario(
+                    client, stype, vendor, products, rng,
+                    date_range_days=active_date_range,
+                )
                 scenarios.append(record)
             except Exception as e:
                 console.print(f"\n[red]Error on scenario '{stype}': {e}[/red]")
@@ -420,7 +608,7 @@ def main() -> int:
     table.add_column("Count", justify="right")
     table.add_column("Share", justify="right")
     for stype, count in counts.items():
-        pct = 100.0 * count / max(args.invoices, 1)
+        pct = 100.0 * count / max(active_invoices, 1)
         table.add_row(stype, EXPECTED_OUTCOME[stype], str(count), f"{pct:.1f}%")
     console.print(table)
 

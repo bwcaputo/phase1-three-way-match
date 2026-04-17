@@ -346,7 +346,7 @@ tbody td {{
   <div class="container">
     <h1>Brian Caputo</h1>
     <p class="subtitle">ERP Agent Experimentation Lab &mdash; Phase 1: Three-Way Match</p>
-    <p class="one-liner">Six experiment variants. 155 invoices. Two governance frameworks. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
+    <p class="one-liner">Seven experiment variants. 190 invoices. Two governance frameworks. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
   </div>
 </header>
 
@@ -424,6 +424,13 @@ tbody td {{
       <p class="evidence">Prescriptive: 96.7% (29/30) &middot; Goal-only: 70.0% (21/30) &middot; Duplicate accuracy: 100% &rarr; 40%</p>
     </div>
 
+    <div class="finding-card card-amber">
+      <span class="pillar-badge badge-amber">Accountability</span>
+      <h3>Silent Degradation</h3>
+      <p>I removed the duplicate-check tool from the agent&rsquo;s toolkit but kept the playbook that tells it to check for duplicates. Every duplicate invoice was approved &mdash; 0 out of 5 caught. The agent didn&rsquo;t error out or flag the missing capability. It silently skipped the step and approved. In production, nobody would know the duplicate check wasn&rsquo;t running. Combined with the playbook finding, this completes a three-point story: full instructions plus full tools = 100% duplicate detection; loose instructions plus full tools = 40%; full instructions plus missing tool = 0%. The agent degrades silently in both directions. That makes toolkit completeness and playbook specificity joint accountability surfaces.</p>
+      <p class="evidence">Control: 5/5 duplicates caught &middot; No duplicate tool: 0/5 caught &middot; 5/5 approved without warning</p>
+    </div>
+
   </div>
 </section>
 
@@ -494,8 +501,19 @@ tbody td {{
       <p class="nist-divergence">Gartner sees a reliability gap. NIST sees a documentation gap. Same finding, different fix: Gartner says improve the agent, NIST says improve the procedure that governs the agent.</p>
     </div>
 
+    <div class="nist-card">
+      <div class="nist-categories">
+        <span class="nist-cat-badge">MANAGE 2</span>
+        <span class="nist-cat-badge">GOVERN 1</span>
+        <span class="nist-cat-badge">MEASURE 2</span>
+      </div>
+      <h3>Silent Degradation</h3>
+      <p>Removing one tool caused 0% duplicate detection with no error or warning. NIST asks whether mitigation strategies account for capability gaps (MANAGE 2) and whether procedures detect when a control stops functioning (GOVERN 1). The agent passed every other check perfectly &mdash; the silent failure is invisible without evaluation against labeled ground truth (MEASURE 2).</p>
+      <p class="nist-divergence">Gartner calls this an accountability failure &mdash; the system should disclose its limitations. NIST calls it a monitoring failure &mdash; the organization should detect when a control stops working.</p>
+    </div>
+
   </div>
-  <p class="nist-coverage">NIST coverage: <strong>8 of 19 categories</strong> touched across five findings. Gaps cluster in organizational process areas (GOVERN 2/4/5/6) and time-series monitoring (MEASURE 3/4) &mdash; expected for a single-developer lab, and each gap maps to a Phase 2 deliverable.</p>
+  <p class="nist-coverage">NIST coverage: <strong>8 of 19 categories</strong> touched across six findings. Gaps cluster in organizational process areas (GOVERN 2/4/5/6) and time-series monitoring (MEASURE 3/4) &mdash; expected for a single-developer lab, and each gap maps to a Phase 2 deliverable.</p>
 </section>
 
 <!-- SECTION 5: WHY THIS MATTERS -->

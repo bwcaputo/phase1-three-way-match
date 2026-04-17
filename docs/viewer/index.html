@@ -227,6 +227,54 @@ tbody td {
   text-decoration: underline;
 }
 
+/* ── NIST mapping cards ──────────────────────────────────────── */
+.nist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.nist-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  border-left: 4px solid var(--accent);
+}
+.nist-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+.nist-card p { font-size: 0.88rem; margin-bottom: 0.6rem; }
+.nist-categories {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.nist-cat-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e40af;
+}
+.nist-divergence {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+.nist-coverage {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-alt);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
 /* ── Print ────────────────────────────────────────────────── */
 @media print {
   nav { position: static; }
@@ -238,6 +286,7 @@ tbody td {
 /* ── Mobile ───────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .findings-grid { flex-direction: column; }
+  .nist-grid { grid-template-columns: 1fr; }
   header h1 { font-size: 1.5rem; }
 }
 </style>
@@ -249,6 +298,7 @@ tbody td {
   <div class="container">
     <a href="#scorecard">Scorecard</a>
     <a href="#findings">Findings</a>
+    <a href="#nist">NIST Mapping</a>
     <a href="#variants">Variants</a>
   </div>
 </nav>
@@ -258,7 +308,7 @@ tbody td {
   <div class="container">
     <h1>Brian Caputo</h1>
     <p class="subtitle">ERP Agent Experimentation Lab &mdash; Phase 1: Three-Way Match</p>
-    <p class="one-liner">Five experiment variants. 120 invoices. Four Gartner findings. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
+    <p class="one-liner">Five experiment variants. 120 invoices. Two governance frameworks. <a href="#scorecard" style="font-weight:500;">Jump to scorecard &darr;</a></p>
   </div>
 </header>
 
@@ -270,7 +320,7 @@ tbody td {
   <div class="exec-summary">
     <p>I built an AI agent that runs three-way match against a live Odoo 17 ERP. It compares each vendor bill to its purchase order and goods receipt, then decides: approve, route for review, or block. The model orchestrates the workflow and explains its reasoning. The arithmetic lives in deterministic code, not in the LLM.</p>
     <p>The cheaper model matched the expensive one. Haiku 4.5 hit 96.7% accuracy on the same AP-clerk prompt as Sonnet 4.6, at one-third the cost and half the latency. The only behavioral difference across all four variants came from changing the agent&rsquo;s role description, not from switching models.</p>
-    <p>I evaluated every variant against Gartner&rsquo;s six pillars for trustworthy AI. Four pillars produced measurable, reproducible findings. The lab is configurable &mdash; swap in your own vendor pool, product catalog, and failure-mode mix through a YAML profile and run the same scorecard against your business context. The results below are from a mid-market manufacturer profile.</p>
+    <p>I evaluated every variant against two governance frameworks: Gartner&rsquo;s six pillars for trustworthy AI and the NIST AI Risk Management Framework. Four findings, two lenses. The lab is configurable &mdash; swap in your own vendor pool, product catalog, and failure-mode mix through a YAML profile and run the same scorecard against your business context. The results below are from a mid-market manufacturer profile.</p>
   </div>
 </section>
 
@@ -298,7 +348,7 @@ tbody td {
 
 <!-- SECTION 4: GARTNER FINDINGS -->
 <section id="findings">
-  <h2>Gartner Pillar Findings</h2>
+  <h2>Gartner Six Pillars</h2>
   <div class="findings-grid">
 
     <div class="finding-card card-green">
@@ -332,7 +382,67 @@ tbody td {
   </div>
 </section>
 
-<!-- SECTION 4.5: WHY THIS MATTERS -->
+<!-- SECTION 4.5: NIST AI RMF MAPPING -->
+<section id="nist">
+  <h2>NIST AI RMF Mapping</h2>
+  <div class="exec-summary">
+    <p>The same four findings scored above against Gartner&rsquo;s pillars also map to the NIST AI Risk Management Framework (AI RMF 1.0). Gartner asks &ldquo;what should the system be?&rdquo; NIST asks &ldquo;what should the organization do?&rdquo; Showing both proves the framework axis is swappable: same experiments, different governance lens, different remediation paths surface.</p>
+  </div>
+  <div class="nist-grid">
+
+    <div class="nist-card">
+      <span class="pillar-badge badge-green">Reliability</span>
+      <h3>Reliability</h3>
+      <div class="nist-categories">
+        <span class="nist-cat-badge">MEASURE 2</span>
+        <span class="nist-cat-badge">MAP 3</span>
+        <span class="nist-cat-badge">MANAGE 1</span>
+      </div>
+      <p>Haiku matched Sonnet at 96.7% accuracy at one-third the cost. NIST asks whether alternatives were benchmarked (MAP 3) and whether the results drove a deployment decision (MANAGE 1). Gartner asks whether the system is reliable. Both answered.</p>
+      <p class="nist-divergence">Gartner treats reliability as a binary attribute. NIST wants the benchmarking process documented and the cost tradeoff justified.</p>
+    </div>
+
+    <div class="nist-card">
+      <span class="pillar-badge badge-amber">Fairness</span>
+      <h3>Fairness</h3>
+      <div class="nist-categories">
+        <span class="nist-cat-badge">MEASURE 2</span>
+        <span class="nist-cat-badge">MAP 5</span>
+        <span class="nist-cat-badge">GOVERN 3</span>
+      </div>
+      <p>The CFO persona missed a $47 duplicate the AP clerk caught. NIST asks whether the organization characterized who bears the cost of that miss (MAP 5) and whether equity was considered in the design process (GOVERN 3). Gartner asks whether the system was fair.</p>
+      <p class="nist-divergence">Gartner says fix the agent. NIST says fix the process that produced the agent.</p>
+    </div>
+
+    <div class="nist-card">
+      <span class="pillar-badge badge-blue">Transparency</span>
+      <h3>Transparency</h3>
+      <div class="nist-categories">
+        <span class="nist-cat-badge">GOVERN 1</span>
+        <span class="nist-cat-badge">MEASURE 1</span>
+        <span class="nist-cat-badge">MAP 3</span>
+      </div>
+      <p>One config change (AND to OR) traded one true positive for three false positives. NIST asks whether the policy change is traceable (GOVERN 1), whether the right metrics captured the tradeoff (MEASURE 1), and whether the cost is understood (MAP 3).</p>
+      <p class="nist-divergence">Gartner is satisfied by the audit trail. NIST wants to know whether the organization chose the right measurements to make the tradeoff visible.</p>
+    </div>
+
+    <div class="nist-card">
+      <span class="pillar-badge badge-green">Security</span>
+      <h3>Security</h3>
+      <div class="nist-categories">
+        <span class="nist-cat-badge">MEASURE 2</span>
+        <span class="nist-cat-badge">MANAGE 2</span>
+        <span class="nist-cat-badge">GOVERN 1</span>
+      </div>
+      <p>10/10 prompt injections ignored. NIST asks whether a mitigation strategy was implemented (MANAGE 2) and documented (GOVERN 1). The architecture &mdash; deterministic matcher, not the LLM &mdash; is that strategy.</p>
+      <p class="nist-divergence">Gartner reports a test result: the system is secure. NIST reports an architectural argument: the organization embedded security in the design.</p>
+    </div>
+
+  </div>
+  <p class="nist-coverage">NIST coverage: <strong>8 of 19 categories</strong> touched across four findings. Gaps cluster in organizational process areas (GOVERN 2/4/5/6) and time-series monitoring (MEASURE 3/4) &mdash; expected for a single-developer lab, and each gap maps to a Phase 2 deliverable.</p>
+</section>
+
+<!-- SECTION 5: WHY THIS MATTERS -->
 <section>
   <h2>Why This Matters</h2>
   <div class="exec-summary">

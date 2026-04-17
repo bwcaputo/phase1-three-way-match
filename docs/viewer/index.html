@@ -270,7 +270,7 @@ tbody td {
   <div class="exec-summary">
     <p>I built an AI agent that runs three-way match against a live Odoo 17 ERP. It compares each vendor bill to its purchase order and goods receipt, then decides: approve, route for review, or block. The model orchestrates the workflow and explains its reasoning. The arithmetic lives in deterministic code, not in the LLM.</p>
     <p>The cheaper model matched the expensive one. Haiku 4.5 hit 96.7% accuracy on the same AP-clerk prompt as Sonnet 4.6, at one-third the cost and half the latency. The only behavioral difference across all four variants came from changing the agent&rsquo;s role description, not from switching models.</p>
-    <p>I evaluated every variant against Gartner&rsquo;s six pillars for trustworthy AI. Four pillars produced measurable, reproducible findings. The scorecard and full per-invoice traces are below.</p>
+    <p>I evaluated every variant against Gartner&rsquo;s six pillars for trustworthy AI. Four pillars produced measurable, reproducible findings. The lab is configurable &mdash; swap in your own vendor pool, product catalog, and failure-mode mix through a YAML profile and run the same scorecard against your business context. The results below are from a mid-market manufacturer profile.</p>
   </div>
 </section>
 

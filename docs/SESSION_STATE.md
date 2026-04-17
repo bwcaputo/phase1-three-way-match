@@ -2,7 +2,25 @@
 
 Living doc. Updated at the end of each working session so any next session (Cowork, Claude Code, or human memory) picks up without re-deriving context.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
+
+---
+
+## What landed this session (Claude Code, 2026-04-17 — UI redesign, model abstraction, docs)
+
+Six things shipped. No API calls needed for any of them — API quota resets 2026-05-01.
+
+1. **Flask web UI redesigned (`app.py`).** Complete rewrite. Card-based design with the same CSS variables as the static viewer. Dashboard: three stat cards (variants, invoices, API spend), variants table with human-readable names + RPST axis column + color-coded accuracy cells, scenario matrix. Experiment detail: summary stat card row, per-scenario table, each invoice as a collapsible `<details>` card with rationale, error, and agent summary. Run page: streaming SSE output with CSS-only spinner. Responsive. No external CSS/JS. `python app.py` -> http://localhost:5000.
+
+2. **Model abstraction layer shipped (`src/model_adapter.py`).** `AnthropicAdapter` (native SDK, no shim), `OpenAIAdapter` (translates Anthropic tool schemas to OpenAI function-calling format, handles `tool_result` message translation), `OllamaAdapter` (OpenAI-compatible, `localhost:11434`). `get_adapter(model_name)` auto-selects by prefix. `run_agent()` now accepts an `adapter=` parameter; the legacy `anthropic=` argument still works (wrapped transparently).
+
+3. **Agent interface contract documented (`docs/AGENT_INTERFACE.md`).** Full input/output contract: `run_agent` signature with RPST axis -> parameter mapping, `AgentResult` fields, `MatchResult` schema, all five tool schemas as JSON, adapter protocol with a minimal example, grading rules, how to add a new scenario type.
+
+4. **`compare_variants.py` upgraded.** Human-readable variant names and RPST axis column in the main table. `--json` flag outputs the full comparison as machine-readable JSON (variants, scenario matrix, totals with highest/lowest accuracy). `--csv` flag outputs a flat CSV with per-scenario columns. Summary footer: total bills, total spend, highest/lowest accuracy variant.
+
+5. **Expanded playground experiments — blocked by API limit.** `haiku_ap_persona` and `baseline` need re-running against the 8-scenario playground (adds `partial_shipment` and `blanket_po` to `by_scenario`). Results file was overwritten by the failed run and restored via `git checkout HEAD`. Good results in place: baseline 96.7%, haiku_ap_persona 96.7% (6-scenario runs). **Next step when API resets (2026-05-01):** run both experiments, rebuild viewer, commit with "Re-run baseline + control against expanded 8-scenario playground."
+
+6. **Multi-seed stability results (from prior session).** `haiku_ap_persona`: seeds 42/99/7 averaged ~93.8%, std dev <3pp (STABLE). `goal_only_playbook`: seeds 42/99/7 averaged ~69.5%, std dev ~2pp (STABLE). `no_duplicate_tool`: seeds 42/99 confirmed 0% duplicate detection on both — silent degradation finding is not a seed artifact.
 
 ---
 

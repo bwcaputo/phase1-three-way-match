@@ -83,10 +83,18 @@ def load_rpst(variant_name: str) -> str:
 
 
 def discover_variants() -> list[str]:
-    """Return variant names sorted alphabetically."""
+    """Return canonical variant names, excluding multi-seed subdirectories.
+
+    Seed runs live in directories like haiku_ap_persona_seed99/ — they're
+    sub-runs of a variant, not independent variants. Exclude them here so
+    compare_variants shows the main table cleanly. Use run_multiseed.py to
+    inspect seed-level stability.
+    """
     dirs = sorted(
         d.name for d in EXPERIMENTS_DIR.iterdir()
-        if d.is_dir() and (d / "summary.json").exists()
+        if d.is_dir()
+        and (d / "summary.json").exists()
+        and "_seed" not in d.name
     )
     return dirs
 

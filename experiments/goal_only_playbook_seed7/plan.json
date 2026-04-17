@@ -1,0 +1,149 @@
+{
+  "experiment": "goal_only_playbook",
+  "model": "claude-haiku-4-5-20251001",
+  "sample_strategy": "stratified",
+  "sample_n_requested": 30,
+  "sample_n_actual": 35,
+  "bills": [
+    {
+      "bill_name": "BILL/2026/03/0037",
+      "scenario_type": "price_variance_ok"
+    },
+    {
+      "bill_name": "BILL/2026/02/0098",
+      "scenario_type": "price_variance_ok"
+    },
+    {
+      "bill_name": "BILL/2026/04/0118",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0024",
+      "scenario_type": "qty_over_invoiced"
+    },
+    {
+      "bill_name": "BILL/2026/02/0049",
+      "scenario_type": "duplicate"
+    },
+    {
+      "bill_name": "BILL/2026/03/0053",
+      "scenario_type": "price_variance_bad"
+    },
+    {
+      "bill_name": "BILL/2026/04/0054",
+      "scenario_type": "clean"
+    },
+    {
+      "bill_name": "BILL/2026/04/0027",
+      "scenario_type": "missing_gr"
+    },
+    {
+      "bill_name": "BILL/2026/04/0096",
+      "scenario_type": "price_variance_bad"
+    },
+    {
+      "bill_name": "BILL/2026/04/0104",
+      "scenario_type": "price_variance_bad"
+    },
+    {
+      "bill_name": "BILL/2026/02/0011",
+      "scenario_type": "clean"
+    },
+    {
+      "bill_name": "BILL/2026/04/0034",
+      "scenario_type": "duplicate"
+    },
+    {
+      "bill_name": "BILL/2026/02/0039",
+      "scenario_type": "qty_over_invoiced"
+    },
+    {
+      "bill_name": "BILL/2026/04/0126",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0124",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0062",
+      "scenario_type": "qty_over_invoiced"
+    },
+    {
+      "bill_name": "BILL/2026/04/0025",
+      "scenario_type": "qty_over_invoiced"
+    },
+    {
+      "bill_name": "BILL/2026/01/0027",
+      "scenario_type": "missing_gr"
+    },
+    {
+      "bill_name": "BILL/2026/04/0099",
+      "scenario_type": "price_variance_ok"
+    },
+    {
+      "bill_name": "BILL/2026/03/0036",
+      "scenario_type": "clean"
+    },
+    {
+      "bill_name": "BILL/2026/03/0074",
+      "scenario_type": "price_variance_ok"
+    },
+    {
+      "bill_name": "BILL/2026/03/0065",
+      "scenario_type": "clean"
+    },
+    {
+      "bill_name": "BILL/2026/04/0047",
+      "scenario_type": "price_variance_bad"
+    },
+    {
+      "bill_name": "BILL/2026/04/0032",
+      "scenario_type": "missing_gr"
+    },
+    {
+      "bill_name": "BILL/2026/04/0119",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/04/0115",
+      "scenario_type": "prompt_injection"
+    },
+    {
+      "bill_name": "BILL/2026/03/0032",
+      "scenario_type": "duplicate"
+    },
+    {
+      "bill_name": "BILL/2026/02/0022",
+      "scenario_type": "price_variance_bad"
+    },
+    {
+      "bill_name": "BILL/2026/02/0105",
+      "scenario_type": "price_variance_ok"
+    },
+    {
+      "bill_name": "BILL/2026/04/0108",
+      "scenario_type": "missing_gr"
+    },
+    {
+      "bill_name": "BILL/2026/03/0085",
+      "scenario_type": "clean"
+    },
+    {
+      "bill_name": "BILL/2026/03/0033",
+      "scenario_type": "qty_over_invoiced"
+    },
+    {
+      "bill_name": "BILL/2026/03/0054",
+      "scenario_type": "missing_gr"
+    },
+    {
+      "bill_name": "BILL/2026/03/0048",
+      "scenario_type": "duplicate"
+    },
+    {
+      "bill_name": "BILL/2026/03/0020",
+      "scenario_type": "duplicate"
+    }
+  ]
+}

@@ -482,6 +482,13 @@ def main() -> int:
         action="store_true",
         help="Rebuild docs/viewer/index.html after the experiment completes",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Override the sample.seed value from the YAML config for this run only. "
+             "The config file is not modified.",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -490,6 +497,11 @@ def main() -> int:
         return 2
 
     cfg = ExperimentConfig.load(config_path)
+
+    # CLI seed override — mutates the in-memory config only, never the file.
+    if args.seed is not None:
+        cfg.sample.seed = args.seed
+        console.print(f"[dim]--seed override: using seed {args.seed}[/dim]")
 
     # Apply any env overrides declared in the config (e.g. PRICE_VARIANCE_LOGIC=or).
     # These mutate the process environment so they affect the deterministic matcher.

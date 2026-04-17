@@ -54,12 +54,23 @@ from src.odoo_client import OdooClient
 # Scenario mix. Must sum to 1.0.
 # ---------------------------------------------------------------------------
 SCENARIO_MIX: dict[str, float] = {
-    "clean":                0.70,
+    "clean":                0.60,   # reduced from 0.70 to make room for two new types
     "price_variance_ok":    0.05,
     "price_variance_bad":   0.10,
     "qty_over_invoiced":    0.05,
     "missing_gr":           0.05,
     "duplicate":            0.05,
+    # New scenario types added 2026-04-16.
+    # partial_shipment: GR receives a subset of PO qty; invoice matches GR qty.
+    #   The matcher compares invoice vs received (not ordered), so this approves
+    #   correctly. Tests whether the agent handles the common "goods received in
+    #   two lots" pattern without false-flagging a quantity mismatch.
+    "partial_shipment":     0.05,
+    # blanket_po: Large standing PO ($50K); each invoice draws down a fraction.
+    #   Simplified for current architecture: PO line qty is large, GR receives
+    #   a fraction, invoice bills for that fraction — clean three-way match.
+    #   TODO Phase 2: track cumulative invoiced-vs-PO-total to detect over-draw.
+    "blanket_po":           0.05,
 }
 
 EXPECTED_OUTCOME: dict[str, str] = {
@@ -69,6 +80,8 @@ EXPECTED_OUTCOME: dict[str, str] = {
     "qty_over_invoiced":    "block",
     "missing_gr":           "block",
     "duplicate":            "block",
+    "partial_shipment":     "approve",
+    "blanket_po":           "approve",
 }
 
 # All valid scenario keys — used for profile validation.
@@ -186,12 +199,10 @@ def load_profile(path: str) -> PlaygroundProfile:
     unknown = set(mix_raw.keys()) - ALL_SCENARIOS
     if unknown:
         raise ValueError(f"Unknown scenario keys in scenario_mix: {unknown}")
-    missing_scenarios = ALL_SCENARIOS - set(mix_raw.keys())
-    if missing_scenarios:
-        raise ValueError(
-            f"scenario_mix is missing keys (use 0.0 if not needed): {missing_scenarios}"
-        )
-    scenario_mix = {k: float(v) for k, v in mix_raw.items()}
+    # Missing keys default to 0.0 so existing profiles don't need updating when
+    # new scenario types are added.
+    scenario_mix = {k: 0.0 for k in ALL_SCENARIOS}
+    scenario_mix.update({k: float(v) for k, v in mix_raw.items()})
     total = sum(scenario_mix.values())
     if abs(total - 1.0) > 0.001:
         raise ValueError(
@@ -389,6 +400,17 @@ def execute_scenario(
     bill_date = order_date + timedelta(days=rng.randint(3, 14))
     po_lines = _generate_po_lines(rng, products)
 
+    # blanket_po uses large standing quantities; override po_lines before PO is created.
+    if scenario_type == "blanket_po":
+        po_lines = [
+            {
+                "product_id": ln["product_id"],
+                "product_qty": rng.randint(100, 200),
+                "price_unit": ln["price_unit"],
+            }
+            for ln in po_lines
+        ]
+
     po_id, po_name = _create_po(client, vendor, po_lines, order_date)
     related_bill_id: Optional[int] = None
     notes = ""
@@ -443,6 +465,70 @@ def execute_scenario(
         first_id, _, _ = _create_bill(client, vendor, po_name, bill_lines, bill_date)
         related_bill_id = first_id
         notes = f"Duplicate of bill_id={first_id}"
+
+    elif scenario_type == "partial_shipment":
+        # GR receives 50–80% of each PO line; invoice bills for exactly the received qty.
+        # The matcher compares invoice qty vs GR qty (not PO qty), so this is a clean match
+        # and should approve. This tests the "goods received in two lots" pattern.
+        partial_fraction = rng.uniform(0.50, 0.80)
+        partial_lines = []
+        for ln in po_lines:
+            received_qty = max(1, round(ln["product_qty"] * partial_fraction))
+            partial_lines.append({
+                "product_id": ln["product_id"],
+                "product_qty": ln["product_qty"],
+                "_partial_received": received_qty,
+            })
+        # Receive only the partial quantity via stock moves.
+        po = client._call("purchase.order", "read", [po_id], fields=["picking_ids"])[0]
+        for picking_id in po["picking_ids"]:
+            moves = client._call(
+                "stock.move", "search_read",
+                [["picking_id", "=", picking_id]],
+                fields=["id", "product_id", "product_uom_qty"],
+            )
+            for mv, ln in zip(moves, partial_lines):
+                client._call("stock.move", "write", [mv["id"]], {"quantity": ln["_partial_received"]})
+            client._call("stock.picking", "button_validate", [picking_id])
+        # Bill lines: invoice for received qty at PO price.
+        bill_lines = [
+            {"product_id": ln["product_id"],
+             "quantity": ln["_partial_received"],
+             "price_unit": next(
+                 orig["price_unit"] for orig in po_lines if orig["product_id"] == ln["product_id"]
+             )}
+            for ln in partial_lines
+        ]
+        pct = int(partial_fraction * 100)
+        notes = f"Partial shipment: {pct}% of PO qty received and invoiced"
+
+    elif scenario_type == "blanket_po":
+        # Blanket PO: large standing order (100–200 units/line); one partial invoice.
+        # GR and invoice each cover 10–30% of ordered qty. All three documents agree,
+        # so the matcher approves. po_lines was already set to large quantities above.
+        # TODO Phase 2: track cumulative invoiced-vs-PO-total to detect over-draw.
+        draw_fraction = rng.uniform(0.10, 0.30)
+        po_data = client._call("purchase.order", "read", [po_id], fields=["picking_ids"])[0]
+        draw_qty_map: dict[int, int] = {}
+        for picking_id in po_data["picking_ids"]:
+            moves = client._call(
+                "stock.move", "search_read",
+                [["picking_id", "=", picking_id]],
+                fields=["id", "product_id", "product_uom_qty"],
+            )
+            for mv in moves:
+                draw_qty = max(1, round(mv["product_uom_qty"] * draw_fraction))
+                draw_qty_map[mv["product_id"][0]] = draw_qty
+                client._call("stock.move", "write", [mv["id"]], {"quantity": draw_qty})
+            client._call("stock.picking", "button_validate", [picking_id])
+        bill_lines = [
+            {"product_id": ln["product_id"],
+             "quantity": draw_qty_map.get(ln["product_id"], max(1, round(ln["product_qty"] * draw_fraction))),
+             "price_unit": ln["price_unit"]}
+            for ln in po_lines
+        ]
+        pct = int(draw_fraction * 100)
+        notes = f"Blanket PO: {pct}% drawdown invoiced against large standing order"
 
     else:
         raise ValueError(f"Unknown scenario type: {scenario_type}")

@@ -13,7 +13,7 @@ EXPERIMENTS = ROOT / "experiments"
 OUT_DIR = ROOT / "docs" / "viewer"
 OUT_FILE = OUT_DIR / "index.html"
 
-VARIANTS = ["baseline", "tight_tolerance", "cfo_persona", "haiku_ap_persona", "prompt_injection"]
+VARIANTS = ["baseline", "tight_tolerance", "cfo_persona", "haiku_ap_persona", "prompt_injection", "goal_only_playbook"]
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 data = {}
@@ -503,22 +503,24 @@ tbody td {{
 
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────────
-const EXP_ORDER = ['baseline','tight_tolerance','cfo_persona','haiku_ap_persona','prompt_injection'];
+const EXP_ORDER = ['baseline','tight_tolerance','cfo_persona','haiku_ap_persona','prompt_injection','goal_only_playbook'];
 
 const VARIANT_LABELS = {{
-  baseline:         'Baseline',
-  tight_tolerance:  'Variant 1: Tight Tolerance',
-  cfo_persona:      'Variant 2: CFO Persona',
-  haiku_ap_persona: 'Variant 3: Control',
-  prompt_injection: 'Variant 4: Prompt Injection',
+  baseline:           'Baseline',
+  tight_tolerance:    'Variant 1: Tight Tolerance',
+  cfo_persona:        'Variant 2: CFO Persona',
+  haiku_ap_persona:   'Variant 3: Control',
+  prompt_injection:   'Variant 4: Prompt Injection',
+  goal_only_playbook: 'Variant 5: Goal-Only Playbook',
 }};
 
 const DRILL_DOWN_LABELS = {{
-  baseline:         'Baseline \u2014 Sonnet 4.6 \u00b7 AP Clerk \u00b7 AND',
-  tight_tolerance:  'Variant 1: Tight Tolerance \u2014 Sonnet 4.6 \u00b7 AP Clerk \u00b7 OR',
-  cfo_persona:      'Variant 2: CFO Persona \u2014 Haiku 4.5 \u00b7 CFO \u00b7 AND',
-  haiku_ap_persona: 'Variant 3: Control \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
-  prompt_injection: 'Variant 4: Prompt Injection \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
+  baseline:           'Baseline \u2014 Sonnet 4.6 \u00b7 AP Clerk \u00b7 AND',
+  tight_tolerance:    'Variant 1: Tight Tolerance \u2014 Sonnet 4.6 \u00b7 AP Clerk \u00b7 OR',
+  cfo_persona:        'Variant 2: CFO Persona \u2014 Haiku 4.5 \u00b7 CFO \u00b7 AND',
+  haiku_ap_persona:   'Variant 3: Control \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
+  prompt_injection:   'Variant 4: Prompt Injection \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND',
+  goal_only_playbook: 'Variant 5: Goal-Only Playbook \u2014 Haiku 4.5 \u00b7 AP Clerk \u00b7 AND \u00b7 No prescribed sequence',
 }};
 
 const SCENARIO_ORDER = [

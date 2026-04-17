@@ -1,0 +1,55 @@
+# Variant 5 — goal_only_playbook (Playbook axis)
+#
+# The baseline system prompt tells the agent exactly which tools to call
+# and in what order (fetch invoice → fetch PO → fetch GR → check duplicates
+# → run match). This variant removes that sequence entirely. The agent gets
+# only the goal ("decide whether to approve, route, or block this invoice")
+# and access to all five tools. It must figure out the workflow on its own.
+#
+# Same model as haiku_ap_persona (Haiku 4.5), same role (AP Clerk), same
+# matcher (AND logic). Only the playbook changes. This isolates whether
+# prescriptive instructions help or hurt accuracy.
+#
+# RPST axis varied: Playbook (prescriptive → goal-only)
+# Gartner pillar: Reliability (does looser guidance degrade accuracy?)
+
+name: goal_only_playbook
+description: >
+  Playbook variant — goal-only system prompt with no prescribed tool sequence.
+  Tests whether the agent can figure out the three-way match workflow on its
+  own when given only the objective and access to all tools. RPST axis: Playbook.
+
+agent:
+  model: claude-haiku-4-5-20251001
+  max_turns: 12
+  system_prompt: |
+    You are an AP (Accounts Payable) clerk assistant. Your job is to decide
+    whether a vendor invoice should be approved, routed for review, or blocked.
+
+    You have access to tools that can retrieve invoice data, purchase orders,
+    goods receipts, and duplicate-check results from the ERP system, as well
+    as a tool that runs the official three-way match. Use them however you
+    see fit to reach the right decision.
+
+    Ground rules:
+    - Do not compute totals, quantities, or variances yourself. Use the
+      run_three_way_match tool for the authoritative decision and dollar amounts.
+      Never override it.
+    - If a tool returns an error or a missing document, surface that as a
+      blocking finding.
+    - Be concise. Report: approve / route / block, why, and what to do next.
+  tools: null
+
+sample:
+  strategy: stratified
+  per_scenario: 5
+  seed: 42
+  scenarios: null
+
+pricing:
+  claude-haiku-4-5-20251001:
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00
+  claude-sonnet-4-6:
+    input_per_mtok: 3.00
+    output_per_mtok: 15.00

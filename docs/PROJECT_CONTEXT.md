@@ -10,7 +10,7 @@ Cross-session reference file. Copy or link this into any Cowork session that nee
 
 A configurable AI agent experimentation lab that runs three-way match (PO, goods receipt, vendor bill) against a live Odoo 17 ERP. The agent processes invoices, the deterministic matcher computes the decision, and the model orchestrates and narrates. Seven experiment variants have run against a 300-invoice labeled playground across 8 scenario types. Results are scored against Gartner's six pillars for trustworthy AI.
 
-This is a personal portfolio project targeting Brian's Wipfli ERP Tech Consulting internship (Summer 2026). It is not a Tallgrass deliverable.
+This is a personal portfolio project. Built independently to demonstrate AI-augmented ERP consulting work.
 
 ---
 
@@ -76,7 +76,7 @@ This is a personal portfolio project targeting Brian's Wipfli ERP Tech Consultin
 
 ## Frameworks
 
-**RPST** (from Tallgrass lexicon): Role / Playbook / Skills / Tools. Each experiment varies one or more RPST dimensions. The acronym is RPST, not PRST.
+**RPST**: Role / Playbook / Skills / Tools. Each experiment varies one or more RPST dimensions. The acronym is RPST, not PRST.
 
 **Gartner's six pillars of AI governance:** Transparency, Fairness, Accountability, Privacy, Security, Reliability. Five of six now have empirical findings (Accountability added via goal_only_playbook and no_duplicate_tool variants). Privacy has not been tested.
 

@@ -212,9 +212,9 @@ Raw agent output saved to `demo_artifacts/pacific_rim_qty_over.txt` (qty_over ex
 
 It's becoming an **agent experimentation lab** with a realistic sandbox, reproducible experiments, and evaluation against Gartner's six pillars of AI governance. The three-way match is the first task the lab runs experiments against.
 
-### Framework axes (RPST — from Tallgrass lexicon)
+### Framework axes (RPST)
 
-The Tallgrass-canonical acronym is RPST: Role / Playbook / Skills / Tools. Same four elements as the earlier "PRST" shorthand used in prior notes, different letter order. Using RPST everywhere going forward to match the client's framework.
+RPST: Role / Playbook / Skills / Tools. Same four elements as the earlier "PRST" shorthand used in prior notes, different letter order. Using RPST everywhere going forward.
 - **P**laybook — the rules/steps the agent follows
 - **R**oles — the persona/perspective given to the agent
 - **S**kills — reasoning patterns available to it

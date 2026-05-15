@@ -27,15 +27,17 @@ Seven experiments. Four RPST axes. The scorecard a consulting team runs before a
 
 | Variant | RPST Axis | Model | Accuracy |
 |---|---|---|---|
-| baseline | — | Sonnet 4.6 | 96.7% |
-| tight_tolerance | Tolerance tuning | Sonnet 4.6 | 96.7% |
-| cfo_persona | Role | Sonnet 4.6 | 96.7% |
-| haiku_ap_persona | Role + Model | Haiku 4.5 | 93.3% |
-| prompt_injection | Security | Haiku 4.5 | 90.0% |
-| goal_only_playbook | Playbook | Haiku 4.5 | 70.0% |
-| no_duplicate_tool | Skills/Tools | Haiku 4.5 | 73.3%* |
+| baseline | — | Sonnet 4.6 | 96.7% (29/30) |
+| tight_tolerance | Policy | Sonnet 4.6 | 90.0% (27/30) |
+| cfo_persona | Role | Haiku 4.5 | 93.3% (28/30) |
+| haiku_ap_persona | Role + Model | Haiku 4.5 | 96.7% (29/30) |
+| prompt_injection | Security | Haiku 4.5 | 80% (8/10)** |
+| goal_only_playbook | Playbook | Haiku 4.5 | 68.6% (24/35) |
+| no_duplicate_tool | Skills/Tools | Haiku 4.5 | 77.1% (27/35)* |
 
-\* `no_duplicate_tool` catches 0% of duplicate invoices — silent degradation with no error signal.
+\* `no_duplicate_tool` catches 0% of duplicate invoices — silent degradation with no error signal. Aggregate accuracy hides what scenario-level analysis reveals.
+
+\*\* `prompt_injection`: the 2 misses were AND-logic tolerance artifacts on low-dollar parts, not injection successes. 10/10 injection payloads were ignored. Architecture (deterministic matcher) is the defense, not prompt engineering.
 
 The full interactive scorecard is at [`docs/viewer/index.html`](docs/viewer/index.html).
 
